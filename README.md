@@ -29,6 +29,8 @@ Prepare software to working with cosmic-ray images:
 
 ### tl;dr
 
+Tested on Linux Mint 19.3:
+
 ```bash
 # Prepare venv
 python3 -m venv venv
@@ -40,9 +42,27 @@ source venv/bin/activate
 pip install wheel
 pip install jupyterlab
 
+# Install credo_cf package
+pip install git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git
+## for upgrade just installed package:
+# pip install --upgrade git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git
+
+# Launch JupyterLab
+jupyter lab
 ```
 
+Download sample data:
 
-## Getting started
+```bash
+# Download small example (42 images)
+wget -O- http://mars.iti.pk.edu.pl/~nkg/export_1585398647736_1585402962221.json.bz2 | bzip2 -dc > small_example.json 
 
+# Download big example (80K images)
+wget -O- wget http://mars.iti.pk.edu.pl/~nkg/export_1584805204914_1585394157807.json.bz2 | bzip2 -dc > big_example.json
+```
 
+The `export_*.json` files is a output files from [CREDO API Tools](https://github.com/credo-science/credo-api-tools).
+
+## Working with Jupyter Lab
+
+See: [example/jupyter.ipynb](example/jupyter.ipynb) for example hot to use it with Jupyter Lab.

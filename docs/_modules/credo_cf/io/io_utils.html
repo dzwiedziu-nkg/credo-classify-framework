@@ -1,0 +1,274 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>credo_cf.io.io_utils &mdash; credo_cf  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> credo_cf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">credo_cf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>credo_cf.io.io_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for credo_cf.io.io_utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">base64</span> <span class="kn">import</span> <span class="n">decodebytes</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+
+<span class="kn">from</span> <span class="nn">credo_cf.commons.consts</span> <span class="kn">import</span> <span class="n">FRAME_CONTENT</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">FRAME_DECODED</span>
+
+
+<span class="k">def</span> <span class="nf">decode_base64</span><span class="p">(</span><span class="n">frame_content</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert bytes encoded in base64 to array of bytes.</span>
+<span class="sd">    :param frame_content: bytes encoded in base64</span>
+<span class="sd">    :return: byte array</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">decodebytes</span><span class="p">(</span><span class="nb">str</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">frame_content</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">store_png</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">],</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="ow">or</span> <span class="nb">int</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="nb">bytes</span> <span class="ow">or</span> <span class="n">Image</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save image in PNG file.</span>
+<span class="sd">    :param root: root directory for PNG files storage</span>
+<span class="sd">    :param path: subdirectories, will be created when not exists</span>
+<span class="sd">    :param name: file name without extensions</span>
+<span class="sd">    :param image: instance of PIL.Image or array of bytes</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dirs</span> <span class="o">=</span> <span class="s1">&#39;/&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">path</span><span class="p">))</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">dirs</span><span class="p">)</span>
+    <span class="n">fn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">.png&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="progress_load_filter"><a class="viewcode-back" href="../../../index.html#credo_cf.io.io_utils.progress_load_filter">[docs]</a><span class="k">def</span> <span class="nf">progress_load_filter</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ret</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Notify progress to ``stdout`` after each 10000 parsed objects.</span>
+
+<span class="sd">    Note: it is simplest sample implementation of ``_filter`` arg for ``load_json_from_stream()``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">count</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count</span> <span class="o">%</span> <span class="mi">10000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;... just parsed </span><span class="si">%d</span><span class="s1"> and skip </span><span class="si">%d</span><span class="s1"> objects.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">count</span><span class="p">,</span> <span class="n">skip</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="progress_and_process_image"><a class="viewcode-back" href="../../../index.html#credo_cf.io.io_utils.progress_and_process_image">[docs]</a><span class="k">def</span> <span class="nf">progress_and_process_image</span><span class="p">(</span><span class="n">obj</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">ret</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Notify progress to ``stdout`` after each 10000 parsed objects and load images from ``frame_content``.</span>
+<span class="sd">    Objects without image will be ignored.</span>
+
+<span class="sd">    See ``progress_load_filter()`` for progress notification</span>
+<span class="sd">    and ``load_image()`` for more info about new keys added to object.</span>
+
+<span class="sd">    After load the ``frame_content`` key was be removed from object for memory free.</span>
+
+<span class="sd">    Note: it is more complex sample implementation of ``_filter`` arg for ``load_json_from_stream()``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">progress_load_filter</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">ret</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">FRAME_CONTENT</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">credo_cf.image.image_utils</span> <span class="kn">import</span> <span class="n">load_image</span>
+        <span class="n">load_image</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Fail of load image in object with ID: </span><span class="si">%d</span><span class="s1">, error: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ID</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)),</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="n">obj</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">FRAME_CONTENT</span><span class="p">)</span>
+    <span class="n">obj</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">FRAME_DECODED</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="kc">True</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Michał Niedźwiecki, CREDO Team
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

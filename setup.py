@@ -22,7 +22,7 @@ setuptools.setup(
     ],
     keywords='credo cosmic-ray image classification',
     python_requires='>=3.6, <4',
-    install_requires=['pillow', 'numpy'],
+    install_requires=['pillow', 'numpy', 'pandas', 'matplotlib'],
     project_urls={  # Optional
         'Bug Reports': 'https://github.com/dzwiedziu-nkg/credo-classify-framework/issues',
         'Source': 'https://github.com/dzwiedziu-nkg/credo-classify-framework',

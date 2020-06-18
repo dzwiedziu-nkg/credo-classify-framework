@@ -1,0 +1,836 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>The credo-classify-framework project &mdash; credo_cf  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> credo_cf
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">The credo-classify-framework project</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li><a class="reference internal" href="#tl-dr">tl;dr</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#working-with-jupyter-lab">Working with Jupyter Lab</a></li>
+<li><a class="reference internal" href="#api-documentation">API Documentation</a><ul>
+<li><a class="reference internal" href="#module-credo_cf.io.load_write">The IO functions</a><ul>
+<li><a class="reference internal" href="#module-credo_cf.io.io_utils">Helpers functions for IO</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-credo_cf.commons.grouping">Grouping functions</a></li>
+<li><a class="reference internal" href="#classification-functions">Classification functions</a><ul>
+<li><a class="reference internal" href="#module-credo_cf.classification.artifact">Working on list of detections</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+</div>
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">credo_cf</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>The credo-classify-framework project</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="toctree-wrapper compound">
+</div>
+<div class="section" id="the-credo-classify-framework-project">
+<h1>The credo-classify-framework project<a class="headerlink" href="#the-credo-classify-framework-project" title="Permalink to this headline">¶</a></h1>
+<p>Framework to analysis the <a class="reference external" href="https://arxiv.org/pdf/1909.01929.pdf">images</a>
+with cropped <a class="reference external" href="https://en.wikipedia.org/wiki/Cosmic_ray">cosmic-ray</a> based noise
+on <a class="reference external" href="https://en.wikipedia.org/wiki/Active-pixel_sensor">CMOS/CCD camera</a>.</p>
+<p>Framework is designed for images stored in <a class="reference external" href="https://api.credo.science/">CREDO Project database</a>.</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<p>The CREDO account with privileges to download data is recommended.
+Without it you will work on our examples only.</p>
+<p>You can create new account by <a class="reference external" href="https://play.google.com/store/apps/details?id=science.credo.mobiledetector">CREDO Detector App</a>.
+Next, please contact with <a class="reference external" href="https://credo.science/">CREDO maintainers</a> to activate privileges to download.</p>
+<p>Another requirements is a installed python v3.6 or newer.</p>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>Prepare software to working with cosmic-ray images:</p>
+<ol class="arabic simple">
+<li><p>Prepare python’s <a class="reference external" href="https://docs.python.org/3/library/venv.html">virtual environment</a> and activate it.</p></li>
+<li><p>Install <a class="reference external" href="https://jupyter.org/install.html">JupyterLab</a>.</p></li>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> package from GitHub.</p></li>
+<li><p>Download data from CREDO database by
+<a class="reference external" href="https://github.com/credo-science/credo-api-tools">CREDO API Tools</a>
+using your login and password to CREDO account.</p></li>
+</ol>
+<div class="section" id="tl-dr">
+<h3>tl;dr<a class="headerlink" href="#tl-dr" title="Permalink to this headline">¶</a></h3>
+<p>Tested on Linux Mint 19.3:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prepare venv</span>
+python3 -m venv venv
+
+<span class="c1"># Activate venv</span>
+<span class="nb">source</span> venv/bin/activate
+
+<span class="c1"># Install JupyterLab</span>
+pip install wheel
+pip install jupyterlab
+
+<span class="c1"># Install credo_cf package</span>
+pip install git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git
+<span class="c1">## for upgrade just installed package:</span>
+<span class="c1"># pip install --upgrade git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git</span>
+
+<span class="c1"># Launch JupyterLab</span>
+jupyter lab
+</pre></div>
+</div>
+<p>Download sample data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Download small example (42 images)</span>
+wget -O- http://mars.iti.pk.edu.pl/~nkg/export_1585398647736_1585402962221.json.bz2 <span class="p">|</span> bzip2 -dc &gt; small_example.json
+
+<span class="c1"># Download big example (80K images)</span>
+wget -O- wget http://mars.iti.pk.edu.pl/~nkg/export_1584805204914_1585394157807.json.bz2 <span class="p">|</span> bzip2 -dc &gt; big_example.json
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">export_*.json</span></code> files is a output files from <a class="reference external" href="https://github.com/credo-science/credo-api-tools">CREDO API Tools</a>.</p>
+</div>
+</div>
+<div class="section" id="working-with-jupyter-lab">
+<h2>Working with Jupyter Lab<a class="headerlink" href="#working-with-jupyter-lab" title="Permalink to this headline">¶</a></h2>
+<p>See: <a class="reference external" href="example/jupyter.ipynb">example/jupyter.ipynb</a> for example hot to use it with Jupyter Lab.</p>
+</div>
+<div class="section" id="api-documentation">
+<h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-credo_cf.io.load_write">
+<span id="the-io-functions"></span><h3>The IO functions<a class="headerlink" href="#module-credo_cf.io.load_write" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="credo_cf.io.load_write.load_json_from_stream">
+<code class="sig-name descname">load_json_from_stream</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">_input</span></em>, <em class="sig-param"><span class="n">_filter</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/load_write.html#load_json_from_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.load_write.load_json_from_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract flat objects from array in JSON.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">objects</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">load_json_from_stream</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">stdin</span><span class="p">,</span> <span class="n">progress_load_filter</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Example content of input JSON file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;list&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;key1&quot;</span><span class="p">:</span> <span class="s2">&quot;value1&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;key2&quot;</span><span class="p">:</span> <span class="s2">&quot;value2&quot;</span><span class="p">,</span>
+      <span class="o">...</span>
+    <span class="p">},</span>
+  <span class="o">...</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>How it works:</dt><dd><ol class="arabic simple">
+<li><p>Ignore all chars until <code class="docutils literal notranslate"><span class="pre">'['</span></code></p></li>
+<li><p>Extract string between next <code class="docutils literal notranslate"><span class="pre">'{'</span></code> and following <code class="docutils literal notranslate"><span class="pre">'}'</span></code> by:</p>
+<ol class="loweralpha simple">
+<li><p>Ignore all chars until <code class="docutils literal notranslate"><span class="pre">'{'</span></code></p></li>
+<li><p>Copy all chars until <code class="docutils literal notranslate"><span class="pre">'}'</span></code></p></li>
+</ol>
+</li>
+<li><p>Parse extracted string by JSON parser from stdlib.</p></li>
+<li><p>Execute filter if is not None, when is None or return True then append object to return list</p></li>
+<li><p>Go to 2. until <code class="docutils literal notranslate"><span class="pre">']'</span></code></p></li>
+</ol>
+</dd>
+</dl>
+<p>Note: depth of <code class="docutils literal notranslate"><span class="pre">'{'</span></code> was ignored, only flat object are supported</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>_input</strong> (<em>TextIO</em>) – input text stream with JSON content</p></li>
+<li><p><strong>_filter</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em><em>]</em><em>, </em><em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>]</em><em>]</em><em>]</em>) – optional callback function. Can be used for filter, progress notification,
+cancelling of read next and run some processes on parsed object.
+When is None then return effect is equivalent to return True by always.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>]</p>
+</dd>
+</dl>
+<dl>
+<dt>The <code class="docutils literal notranslate"><span class="pre">_filter(obj,</span> <span class="pre">count,</span> <span class="pre">ret)</span></code> callback provided as arg:</dt><dd><p>Can be used for filter, progress notification and cancelling of read next.
+See <code class="docutils literal notranslate"><span class="pre">progress_load_filter()</span></code> or <code class="docutils literal notranslate"><span class="pre">progress_and_process_image()</span></code> for example how to implement custom callback method.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">obj</span></code>: parsed JSON object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">count</span></code>: count of just parsed JSON object</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ret</span></code>: list of just appended objects</p></li>
+</ul>
+</dd>
+<dt>Return effect:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code>: parsed object will be append to <code class="docutils literal notranslate"><span class="pre">ret</span></code> list. Similar when <code class="docutils literal notranslate"><span class="pre">_filter</span></code> arg was not provided.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code>: object will be ignored (will not be append to <code class="docutils literal notranslate"><span class="pre">ret</span></code> list)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: object will be ignored and next object loop will be broken (cancel).</p></li>
+</ul>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple of (list of appended objects, count of all parsed objects from input)</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>_input</strong> (<em>TextIO</em>) – </p></li>
+<li><p><strong>_filter</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em><em>]</em><em>, </em><em>Optional</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>]</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.io.load_write.load_json">
+<code class="sig-name descname">load_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_file</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/load_write.html#load_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.load_write.load_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper on <code class="docutils literal notranslate"><span class="pre">load_json_from_stream()</span></code>.</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">input_file</span></code> contains a <code class="docutils literal notranslate"><span class="pre">&quot;-&quot;</span></code> string then input will be read from <code class="docutils literal notranslate"><span class="pre">stdin</span></code>.
+Otherwise the file will be open as input text stream.</p>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">objects</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">load_json</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">progress_load_filter</span><span class="p">)</span>
+<span class="n">objects</span><span class="p">,</span> <span class="n">count</span> <span class="o">=</span> <span class="n">load_json</span><span class="p">(</span><span class="s2">&quot;/tmp/detections.json&quot;</span><span class="p">,</span> <span class="n">progress_and_process_image</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to JSON file or “-” for stdin.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>redirected directly from load_json_from_stream()</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.io.load_write.serialize">
+<code class="sig-name descname">serialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">output_file</span></em>, <em class="sig-param"><span class="n">obj_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/load_write.html#serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.load_write.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save data to binary file.</p>
+<p>Note: please refer to <code class="docutils literal notranslate"><span class="pre">pickle</span></code> module limitations.
+:param output_file: path to file when data will be stored
+:param obj_list: list of object to store</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>obj_list</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)">None</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.io.load_write.deserialize">
+<code class="sig-name descname">deserialize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">input_file</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/load_write.html#deserialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.load_write.deserialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data stored by <code class="docutils literal notranslate"><span class="pre">serialize()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>input_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – path to file when data was stored by serialize()</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>list of objects</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<div class="section" id="module-credo_cf.io.io_utils">
+<span id="helpers-functions-for-io"></span><h4>Helpers functions for IO<a class="headerlink" href="#module-credo_cf.io.io_utils" title="Permalink to this headline">¶</a></h4>
+<dl class="py function">
+<dt id="credo_cf.io.io_utils.progress_load_filter">
+<code class="sig-name descname">progress_load_filter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">count</span></em>, <em class="sig-param"><span class="n">ret</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/io_utils.html#progress_load_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.io_utils.progress_load_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Notify progress to <code class="docutils literal notranslate"><span class="pre">stdout</span></code> after each 10000 parsed objects.</p>
+<p>Note: it is simplest sample implementation of <code class="docutils literal notranslate"><span class="pre">_filter</span></code> arg for <code class="docutils literal notranslate"><span class="pre">load_json_from_stream()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
+<li><p><strong>count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>ret</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.io.io_utils.progress_and_process_image">
+<code class="sig-name descname">progress_and_process_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">obj</span></em>, <em class="sig-param"><span class="n">count</span></em>, <em class="sig-param"><span class="n">ret</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/io/io_utils.html#progress_and_process_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.io.io_utils.progress_and_process_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Notify progress to <code class="docutils literal notranslate"><span class="pre">stdout</span></code> after each 10000 parsed objects and load images from <code class="docutils literal notranslate"><span class="pre">frame_content</span></code>.
+Objects without image will be ignored.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">progress_load_filter()</span></code> for progress notification
+and <code class="docutils literal notranslate"><span class="pre">load_image()</span></code> for more info about new keys added to object.</p>
+<p>After load the <code class="docutils literal notranslate"><span class="pre">frame_content</span></code> key was be removed from object for memory free.</p>
+<p>Note: it is more complex sample implementation of <code class="docutils literal notranslate"><span class="pre">_filter</span></code> arg for <code class="docutils literal notranslate"><span class="pre">load_json_from_stream()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a>) – </p></li>
+<li><p><strong>count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>ret</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Optional[<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)">bool</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-credo_cf.commons.grouping">
+<span id="grouping-functions"></span><h3>Grouping functions<a class="headerlink" href="#module-credo_cf.commons.grouping" title="Permalink to this headline">¶</a></h3>
+<dl class="py function">
+<dt id="credo_cf.commons.grouping.group_by_lambda">
+<code class="sig-name descname">group_by_lambda</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">array</span></em>, <em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/commons/grouping.html#group_by_lambda"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.commons.grouping.group_by_lambda" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert list of objects to dict of list of object when key of dict is generated by func.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">grouped</span> <span class="o">=</span> <span class="n">group_by_lambda</span><span class="p">(</span><span class="n">detections</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DEVICE_ID</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>array</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – list of objects to group</p></li>
+<li><p><strong>func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Any</em><em>, </em><em>Dict</em><em>[</em><em>Any</em><em>, </em><em>List</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Optional</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – give object as param and return key or None, when key is None then object will be excluded</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[Any, List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+<p>The <code class="docutils literal notranslate"><span class="pre">func(obj,</span> <span class="pre">ret)</span></code> callback provided as arg:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>Args:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">obj</span></code>: next element from <code class="docutils literal notranslate"><span class="pre">array</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ret</span></code>: dictionary of just grouped objects</p></li>
+</ul>
+</dd>
+<dt>Return effect:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code>: object will not be added anywhere</p></li>
+<li><p><em>some value</em> : object will be append to array in <em>some value</em> key</p></li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+<p>Note: there are some wrappers for this functions like
+<code class="docutils literal notranslate"><span class="pre">group_by_device_id()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">group_by_timestamp_division()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">group_by_timestamp_division()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">group_by_resolution()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>dict of list of object</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>array</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>func</strong> (<em>Callable</em><em>[</em><em>[</em><em>Any</em><em>, </em><em>Dict</em><em>[</em><em>Any</em><em>, </em><em>List</em><em>[</em><em>Any</em><em>]</em><em>]</em><em>]</em><em>, </em><em>Optional</em><em>[</em><em>Any</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[Any, List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.commons.grouping.group_by_device_id">
+<code class="sig-name descname">group_by_device_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/commons/grouping.html#group_by_device_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.commons.grouping.group_by_device_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group detections by device_id field. The key of group is <code class="docutils literal notranslate"><span class="pre">device_id</span></code>.</p>
+<p>Note: it is wrapper on <code class="docutils literal notranslate"><span class="pre">group_by_lambda()</span></code>.
+:param detections: list of detections
+:return: detections grouped by device_id</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>, List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.commons.grouping.group_by_timestamp_division">
+<code class="sig-name descname">group_by_timestamp_division</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">division</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/commons/grouping.html#group_by_timestamp_division"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.commons.grouping.group_by_timestamp_division" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group detections by timestamp divided. The key of group is <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> integer divided by <code class="docutils literal notranslate"><span class="pre">division</span></code>.</p>
+<p>Note: it is wrapper on <code class="docutils literal notranslate"><span class="pre">group_by_lambda()</span></code>.
+:param detections: list of ungrouped detections
+:param division: timestamp window do divide detections</p>
+<p>Note: when <code class="docutils literal notranslate"><span class="pre">division=1</span></code> then detection will be grouped by detections on the same original image frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>detection grouped by timestamp integer divided by division param</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>division</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>, List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.commons.grouping.group_by_resolution">
+<code class="sig-name descname">group_by_resolution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/commons/grouping.html#group_by_resolution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.commons.grouping.group_by_resolution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Group detections by resolution of original image frame.
+The key of group is tuple of (width, height) of original image frame.</p>
+<p>Note: it is wrapper on <code class="docutils literal notranslate"><span class="pre">group_by_lambda()</span></code>.
+:param detections: list of ungrouped detections
+:return: detection grouped by resolution of original image frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Dict[Tuple[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)">int</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="classification-functions">
+<h3>Classification functions<a class="headerlink" href="#classification-functions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="module-credo_cf.classification.artifact">
+<span id="working-on-list-of-detections"></span><h4>Working on list of detections<a class="headerlink" href="#module-credo_cf.classification.artifact" title="Permalink to this headline">¶</a></h4>
+<dl class="py function">
+<dt id="credo_cf.classification.artifact.hot_pixel">
+<code class="sig-name descname">hot_pixel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">often</span><span class="o">=</span><span class="default_value">3</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/classification/artifact/hot_pixel.html#hot_pixel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.classification.artifact.hot_pixel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse by hot pixel classifier.</p>
+<p>Note: detections should be grouped by <code class="docutils literal notranslate"><span class="pre">device_id</span></code> and <code class="docutils literal notranslate"><span class="pre">resolution</span></code>.
+See: <code class="docutils literal notranslate"><span class="pre">group_by_device_id()</span></code> and <code class="docutils literal notranslate"><span class="pre">group_by_resolution()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – list of detections</p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – classified threshold</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+<p>When in one <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> coordinates on original frame we have more than <code class="docutils literal notranslate"><span class="pre">often</span></code> detections, we classify all as hot_pixel artifact.</p>
+<dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code>: coordinates of detection on original frame</p></li>
+</ul>
+</dd>
+<dt>Keys will be add:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact_hot_pixel</span></code>: count of detections in the same <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> coordinates on original frame.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classified</span></code>: set to <code class="docutils literal notranslate"><span class="pre">artifact</span></code> when detection will be classified as hot_pixel artifact.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">by_device_id</span> <span class="ow">in</span> <span class="n">group_by_device_id</span><span class="p">(</span><span class="n">detections</span><span class="p">):</span>
+  <span class="k">for</span> <span class="n">by_resolution</span> <span class="ow">in</span> <span class="n">group_by_resolution</span><span class="p">(</span><span class="n">by_device_id</span><span class="p">)</span>
+    <span class="n">hot_pixel</span><span class="p">(</span><span class="n">by_resolution</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple of (list of classified, list of no classified)</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.classification.artifact.near_hot_pixel">
+<code class="sig-name descname">near_hot_pixel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">often</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">distance</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/classification/artifact/near_hot_pixel.html#near_hot_pixel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.classification.artifact.near_hot_pixel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse by near hot pixel classifier.</p>
+<p>Note: detections should be grouped by <code class="docutils literal notranslate"><span class="pre">device_id</span></code> and <code class="docutils literal notranslate"><span class="pre">resolution</span></code>.
+See: <code class="docutils literal notranslate"><span class="pre">group_by_device_id()</span></code> and <code class="docutils literal notranslate"><span class="pre">group_by_resolution()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – list of detections</p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – classified threshold</p></li>
+<li><p><strong>distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – distance in px to group as one hot pixel</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+<p>It is extension of hot pixel filter. In hot pixel we get <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> as key of group.
+In near hot pixel the first detection provide key from <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code>
+but <code class="docutils literal notranslate"><span class="pre">(X',</span> <span class="pre">Y')</span></code> from next detection are compared to previous keys
+and when distance is less than <code class="docutils literal notranslate"><span class="pre">distance</span></code> arg then append to key and break loop.
+When loop was end and near keys not found the <code class="docutils literal notranslate"><span class="pre">(X',</span> <span class="pre">Y')</span></code> make new key.</p>
+<p>The distance measurement of keys is the Euclidean distance between <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> and <code class="docutils literal notranslate"><span class="pre">(X',</span> <span class="pre">Y')</span></code> on 2D plane.</p>
+<p>When in one key we have more than <code class="docutils literal notranslate"><span class="pre">often</span></code> detections, we classify all as near_hot_pixel artifact.</p>
+<dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code>: coordinates of detection on original frame</p></li>
+</ul>
+</dd>
+<dt>Keys will be add:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact_near_hot_pixel</span></code>: count of detections in the same key.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact_near_hot_pixel_refxy</span></code>: value of the used key.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classified</span></code>: set to <code class="docutils literal notranslate"><span class="pre">artifact</span></code> when detection will be classified as near_hot_pixel artifact.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">by_device_id</span> <span class="ow">in</span> <span class="n">group_by_device_id</span><span class="p">(</span><span class="n">detections</span><span class="p">):</span>
+  <span class="k">for</span> <span class="n">by_resolution</span> <span class="ow">in</span> <span class="n">group_by_resolution</span><span class="p">(</span><span class="n">by_device_id</span><span class="p">)</span>
+    <span class="n">near_hot_pixel</span><span class="p">(</span><span class="n">by_resolution</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple of (list of classified, list of no classified)</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.classification.artifact.near_hot_pixel2">
+<code class="sig-name descname">near_hot_pixel2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">often</span><span class="o">=</span><span class="default_value">3</span></em>, <em class="sig-param"><span class="n">distance</span><span class="o">=</span><span class="default_value">5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/classification/artifact/near_hot_pixel2.html#near_hot_pixel2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.classification.artifact.near_hot_pixel2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse by near hot pixel v2 classifier.</p>
+<p>Note: detections should be grouped by <code class="docutils literal notranslate"><span class="pre">device_id</span></code> and <code class="docutils literal notranslate"><span class="pre">resolution</span></code>.
+See: <code class="docutils literal notranslate"><span class="pre">group_by_device_id()</span></code> and <code class="docutils literal notranslate"><span class="pre">group_by_resolution()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – list of detections</p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – classified threshold</p></li>
+<li><p><strong>distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – distance in px to group as one hot pixel</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+<p>It is extension of hot pixel filter. In hot pixel we get <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> as key of group.
+In near hot pixel v2 all other detections who distance is less than <code class="docutils literal notranslate"><span class="pre">distance</span></code> are counted to <code class="docutils literal notranslate"><span class="pre">artifact_near_hot_pixel2</span></code> object’s key.</p>
+<p>The distance measurement of keys is the Euclidean distance between <code class="docutils literal notranslate"><span class="pre">(X,</span> <span class="pre">Y)</span></code> and <code class="docutils literal notranslate"><span class="pre">(X',</span> <span class="pre">Y')</span></code> on 2D plane.</p>
+<p>When in one key we have more than <code class="docutils literal notranslate"><span class="pre">often</span></code> detections, we classify all as near_hot_pixel2 artifact.</p>
+<dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code>: coordinates of detection on original frame</p></li>
+</ul>
+</dd>
+<dt>Keys will be add:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact_near_hot_pixel2</span></code>: count of detections in near distance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classified</span></code>: set to <code class="docutils literal notranslate"><span class="pre">artifact</span></code> when detection will be classified as near_hot_pixel artifact.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">by_device_id</span> <span class="ow">in</span> <span class="n">group_by_device_id</span><span class="p">(</span><span class="n">detections</span><span class="p">):</span>
+  <span class="k">for</span> <span class="n">by_resolution</span> <span class="ow">in</span> <span class="n">group_by_resolution</span><span class="p">(</span><span class="n">by_device_id</span><span class="p">)</span>
+    <span class="n">near_hot_pixel2</span><span class="p">(</span><span class="n">by_resolution</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple of (list of classified, list of no classified)</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>distance</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="credo_cf.classification.artifact.too_often">
+<code class="sig-name descname">too_often</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">detections</span></em>, <em class="sig-param"><span class="n">often</span><span class="o">=</span><span class="default_value">4</span></em>, <em class="sig-param"><span class="n">time_window</span><span class="o">=</span><span class="default_value">60000</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/credo_cf/classification/artifact/too_often.html#too_often"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#credo_cf.classification.artifact.too_often" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyse by too often classifier.</p>
+<p>Note: detections should be grouped by <code class="docutils literal notranslate"><span class="pre">device_id</span></code>.
+See: <code class="docutils literal notranslate"><span class="pre">group_by_device_id()</span></code>.
+The additional group by <code class="docutils literal notranslate"><span class="pre">resolution</span></code> is not required, but is not prohibited.
+So it may be work in the same grouped detections than for <code class="docutils literal notranslate"><span class="pre">(near_)hot_pixel(2)</span></code> classifiers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – list of detections</p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – classified threshold</p></li>
+<li><p><strong>time_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – timestamp distance</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+<p>Classifier work similar to <code class="docutils literal notranslate"><span class="pre">near_hot_pixel2</span></code> classifier but in this we use <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> object’s key as group key.
+At first, te detections from the same original image frame (with the same <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> value) are counted as one detection.
+At second, all other detections who distance is less than <code class="docutils literal notranslate"><span class="pre">time_window</span></code> are counted to <code class="docutils literal notranslate"><span class="pre">artifact_too_often</span></code> object’s key.</p>
+<p>The distance measurement of keys is the Euclidean distance between <code class="docutils literal notranslate"><span class="pre">timestamp</span></code> and <code class="docutils literal notranslate"><span class="pre">timestamp'</span></code> in 1D space.</p>
+<dl class="simple">
+<dt>Required keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">timestamp</span></code>: for group by the same original image frame, and count of detections in near</p></li>
+</ul>
+</dd>
+<dt>Keys will be add:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact_hot_pixel</span></code>: count of detections in near <code class="docutils literal notranslate"><span class="pre">timestamp</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classified</span></code>: set to <code class="docutils literal notranslate"><span class="pre">artifact</span></code> when detection will be classified as too_often artifact.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">by_device_id</span> <span class="ow">in</span> <span class="n">group_by_device_id</span><span class="p">(</span><span class="n">detections</span><span class="p">):</span>
+  <span class="n">too_often</span><span class="p">(</span><span class="n">by_device_id</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>tuple of (list of classified, list of no classified)</p>
+</dd>
+<dt class="field-even">Parameters</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>detections</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>often</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>time_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Tuple[List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>], List[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)">dict</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Michał Niedźwiecki, CREDO Team
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

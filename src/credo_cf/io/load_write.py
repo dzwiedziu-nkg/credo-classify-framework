@@ -43,12 +43,10 @@ def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = 
     Note: depth of ``'{'`` was ignored, only flat object are supported
 
     :param _input: input text stream with JSON content
-    :type _input: TextIO
 
     :param _filter: optional callback function. Can be used for filter, progress notification,
-    cancelling of read next and run some processes on parsed object.
-    When is None then return effect is equivalent to return True by always.
-    :type _filter: Callable
+      cancelling of read next and run some processes on parsed object.
+      When is None then return effect is equivalent to return True by always.
 
     The ``_filter(obj, count, ret)`` callback provided as arg:
       Can be used for filter, progress notification and cancelling of read next.
@@ -66,6 +64,7 @@ def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = 
 
     :return: tuple of (list of appended objects, count of all parsed objects from input)
     """
+
     ret = []
     count = 0
 
@@ -126,6 +125,7 @@ def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int]:
     :param input_file: path to JSON file or "-" for stdin.
     :return: redirected directly from load_json_from_stream()
     """
+
     inp = sys.stdin if input_file == '-' else open(input_file, 'r')
     ret = load_json_from_stream(inp, *args, **kwargs)
     if input_file != '-':
@@ -141,6 +141,7 @@ def serialize(output_file: str, obj_list: List[dict]) -> None:
     :param output_file: path to file when data will be stored
     :param obj_list: list of object to store
     """
+
     with open(output_file, 'wb') as f:
         pickle.dump(obj_list, f)
 
@@ -152,5 +153,6 @@ def deserialize(input_file: str) -> List[dict]:
     :param input_file: path to file when data was stored by serialize()
     :return: list of objects
     """
+
     with open(input_file, "rb") as f:
         return pickle.load(f)
