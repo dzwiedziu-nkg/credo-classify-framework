@@ -88,7 +88,16 @@
 <li><a class="reference internal" href="#tl-dr">tl;dr</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#working-with-jupyter-lab">Working with Jupyter Lab</a></li>
+<li><a class="reference internal" href="#working-with-jupyter-lab">Working with Jupyter Lab</a><ul>
+<li><a class="reference internal" href="#general-conventions">General conventions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#contribute">Contribute</a><ul>
+<li><a class="reference internal" href="#project-structure">Project structure</a></li>
+<li><a class="reference internal" href="#contribute-rules-for-pull-requests">Contribute rules for pull requests</a></li>
+<li><a class="reference internal" href="#run-unit-tests">Run unit-tests</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#api-documentation">API Documentation</a><ul>
 <li><a class="reference internal" href="#module-credo_cf.io.load_write">The IO functions</a><ul>
 <li><a class="reference internal" href="#module-credo_cf.io.io_utils">Helpers functions for IO</a></li>
@@ -232,6 +241,102 @@ wget -O- wget http://mars.iti.pk.edu.pl/~nkg/export_1584805204914_1585394157807.
 <div class="section" id="working-with-jupyter-lab">
 <h2>Working with Jupyter Lab<a class="headerlink" href="#working-with-jupyter-lab" title="Permalink to this headline">¶</a></h2>
 <p>See: <a class="reference external" href="example/jupyter.ipynb">example/jupyter.ipynb</a> for example hot to use it with Jupyter Lab.</p>
+<div class="section" id="general-conventions">
+<h3>General conventions<a class="headerlink" href="#general-conventions" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> is the set of functions (not classes).
+Functions are working with cosmic-ray detections.
+Each detection was stored in separated dict object (key-value pair map) named detection.
+Functions working with single detection or list of detections. The input of functions is
+the values stored in keys. The output of functions is the values stored in new keys in detection.
+The docstring documentation of each function describes which keys used and stored.</p>
+<p>Framework contains classify functions, load/write (from JSON) functions and helpers like grouping functions.</p>
+<p>Each classify function get single detection or list of detections as 1st arg and other
+parameters in next args.</p>
+<ul class="simple">
+<li><p>when function gets list of detections then return tuple of two lists:</p>
+<ul>
+<li><p>classified and</p></li>
+<li><p>no classified</p></li>
+</ul>
+</li>
+<li><p>when functions get single detection then return:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">True</span></code> - when classified and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">False</span></code> - when no classified.</p></li>
+</ul>
+</li>
+</ul>
+<p>Store the return of classify functions is not mandatory because result was stored in key value anyway.
+But, the return of classify functions may be used for classify chains.</p>
+<p>Some classify functions should be get list of detections for the same device.
+So the grouping functions is provided. Each grouping functions return dict object where
+the key is the group (i.e. <code class="docutils literal notranslate"><span class="pre">device_id</span></code>) and value is the list of detections.</p>
+<p><strong>Important!</strong> Each list of detections contains reference to detection dict object.
+When you modify some key value then it will be modified everywhere.
+When you want to get true copy of object you should use deep copy.</p>
+</div>
+</div>
+<div class="section" id="contribute">
+<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline">¶</a></h2>
+<p>Welcome to contribute to write self extension to our framework.</p>
+<ol class="arabic simple">
+<li><p>Please fork project to self GitHub account.</p></li>
+<li><p>Clone git repository to your local machine.</p></li>
+<li><p>Create new python project with own <strong>venv</strong>.</p></li>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> package from local directory via <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">/path/to/cloned/credo_cf</span></code></p></li>
+<li><p>Commit and push to GitHub changes in <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code>.</p></li>
+<li><p>Make pull request of these changes to us.</p></li>
+</ol>
+<div class="section" id="project-structure">
+<h3>Project structure<a class="headerlink" href="#project-structure" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> is the set of functions (not classes) grouped by sub-packages.
+Each function have unique name and is exported in main <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> package.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">credo_cf/commons</span></code> - utils functions used in various other functions,</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">consts.py</span></code> - keys for values stored in objects,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grouping.py</span></code> - functions for grouping objects,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">classify.py</span></code> - utils functions for classification functions,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">utils.py</span></code> - other utils,</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">credo_cf/image</span></code> - utils functions used for working with cosmic-ray image,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">credo_cf/io</span></code> - load and save functions,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">credo_cf/classificaton</span></code> - function to classify cosmic-ray detections,</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">artifact</span></code> - functions to classify as artifact</p></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="contribute-rules-for-pull-requests">
+<h3>Contribute rules for pull requests<a class="headerlink" href="#contribute-rules-for-pull-requests" title="Permalink to this headline">¶</a></h3>
+<p>Changes in pull request should be well written.</p>
+<ul class="simple">
+<li><p>project structure should be save,</p></li>
+<li><p>general conventions should be save,</p></li>
+<li><p>each function should be documented in docstring,</p></li>
+<li><p>each function should be covered by unit tests,</p></li>
+<li><p>args and return should have typings (for type hints).</p></li>
+</ul>
+</div>
+<div class="section" id="run-unit-tests">
+<h3>Run unit-tests<a class="headerlink" href="#run-unit-tests" title="Permalink to this headline">¶</a></h3>
+<p>Minimal: install <code class="docutils literal notranslate"><span class="pre">pytest</span></code> and <code class="docutils literal notranslate"><span class="pre">credo_cf</span></code> as editable dependency and run in command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install pytest
+pip install -e .
+
+pytest
+</pre></div>
+</div>
+<p>Recommended: install <code class="docutils literal notranslate"><span class="pre">tox</span></code> via <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">tox</span></code>.
+Install all python interpreters listed in <code class="docutils literal notranslate"><span class="pre">tox.ini</span></code> in <code class="docutils literal notranslate"><span class="pre">envlist</span> <span class="pre">=</span> <span class="pre">[...]</span></code> line.
+Then, run in command line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tox
+</pre></div>
+</div>
+<p>All test should be passed before make pull request.</p>
+</div>
 </div>
 <div class="section" id="api-documentation">
 <h2>API Documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h2>
