@@ -1,6 +1,6 @@
 from typing import List, Tuple
 from credo_cf.commons.utils import get_and_set
-from credo_cf.commons.consts import GOOD_BRIGHT, IMAGE,DARKNESS, BRIGHTEST
+from credo_cf.commons.consts import BRIGHT_PIXELS,GOOD_BRIGHT, IMAGE
 from credo_cf.image.image_utils import measure_darkness_brightest
 
 """
@@ -17,14 +17,20 @@ def bright_detections(detections: List[dict], bright_pixels=70, threshold=70) ->
         assert image.get(IMAGE) is not None
         measure_darkness_brightest(image)
 
-        assert image.get(DARKNESS) is not None
-        assert image.get(BRIGHTEST) is not None
-
-        brightest = image.get(BRIGHTEST)
-
+        hit_img = image.get(IMAGE).convert('LA')
+        width, height = hit_img.size
+        pixelMap = hit_img.load()
+        bright_point = 0
+        for cy in range(height):
+            for cx in range(width):
+                a = pixelMap[cx,cy]  # a -pixel table ((p), (t)) we are only interested in p; t always == 255
+                a0 = a[0]
+                if threshold < a0:
+                    bright_point += 1
+        get_and_set(image, BRIGHT_PIXELS, bright_point)
         get_and_set(image, GOOD_BRIGHT, "False")
 
-        if (brightest > 0 and brightest < bright_pixels):
+        if (bright_point > 0 and bright_point < bright_pixels):
             image[GOOD_BRIGHT] = "True"
             good.append(image)
         else:
