@@ -44,3 +44,5 @@ ARTIFACT_TOO_LARGE_BRIGHT_AREA = 'artifact_too_large_bright_area'  # BRIGHTER_CO
 
 ARTIFACT_NEAR_HOT_PIXEL2 = 'artifact_near_hot_pixel2'  # count of occurrences for near_hot_pixel filter
 #ARTIFACT_NEAR_HOT_PIXEL2_COUNT = 'artifact_near_hot_pixel2_count'  # count of neighborhood pixels
+
+GOOD_BRIGHT = 'good_bright'       # Image isn't too bright or too dark? True / False (too_bright.py)
