@@ -44,7 +44,7 @@ def progress_load_filter(obj: dict, count: int, ret: List[dict]) -> Optional[boo
     """
     skip = count - len(ret)
     if count % 10000 == 0:
-        print('... just parsed %d and skip %d objects.' % (count, skip))
+        print('... just parsed %d and skip %d objects.' % (count, skip), file=sys.stderr)
 
     return True
 
