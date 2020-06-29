@@ -114,7 +114,7 @@ def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int]:
     """
     Wrapper on ``load_json_from_stream()``.
 
-    When ``input_file`` contains a ``"-"`` string then input will be read from ``stdin``.
+    When ``input_file`` is the ``"-"`` string then input will be read from ``stdin``.
     Otherwise the file will be open as input text stream.
 
     Examples::
