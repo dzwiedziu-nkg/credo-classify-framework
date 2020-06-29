@@ -26,6 +26,8 @@ def prepare_working_set(input_file: Union[str, List[str]], output_file: str = No
 
         list(prepare_working_set(...))
 
+    Note: pleas not run in whole CREDO database. Function load all detections before write to RAM. TODO: implement stream writing to JSON to solve this problem
+
     :param input_file: file or list of files
     :param output_file: output file name, when is None then output will not be written
     :param exclude_edge: exclude image with EDGE key, default: True
