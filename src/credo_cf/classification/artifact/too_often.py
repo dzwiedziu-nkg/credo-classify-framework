@@ -7,7 +7,7 @@ from credo_cf.commons.grouping import group_by_timestamp_division
 from credo_cf.commons.utils import get_and_set
 
 
-def too_often(detections: List[dict], often: int = 4, time_window: int = 60000) -> Tuple[List[dict], List[dict]]:
+def too_often(detections: List[dict], often: int = 10, time_window: int = 60000) -> Tuple[List[dict], List[dict]]:
     """
     Analyse by too often classifier.
 
