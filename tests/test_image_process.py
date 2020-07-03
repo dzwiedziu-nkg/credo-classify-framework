@@ -7,6 +7,7 @@ def test_load_image():
     }
 
     load_image(detection)
+    convert_to_gray(detection)
 
 
 def test_image_basic_metrics():
