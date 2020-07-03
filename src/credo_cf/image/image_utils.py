@@ -5,7 +5,7 @@ from PIL import Image
 import numpy as np
 
 from credo_cf.commons.consts import IMAGE, FRAME_DECODED, DARKNESS, BRIGHTEST, BRIGHTER_COUNT, FRAME_CONTENT, CROP_SIZE, EDGE, X, \
-    WIDTH, Y, HEIGHT, CROP_X, CROP_Y
+    WIDTH, Y, HEIGHT, CROP_X, CROP_Y, GRAY
 from credo_cf.io.io_utils import decode_base64
 
 
@@ -21,14 +21,15 @@ def get_brightest_channel(pixel: Tuple[int, int, int, int]) -> int:
 
 def load_image(detection: dict, clean_memory: bool = False) -> dict:
     """
-    Load image from ``frame_content`` to object's key with some calculated metrics.
+    Load image from ``frame_content`` to object's key with basic grayscale conversion.
 
     Required keys:
       * ``frame_encoded`` (byte array) or ``frame_content`` (base64-encoded string)
 
     Keys will be add:
       * ``frame_encoded``: when no ``frame_encoded`` then ``frame_content`` will be decoded and stored in this key
-      * ``image``: object of ``PIP`` library with loaded image
+      * ``image``: object of numpy loaded image (channels RGB)
+      * ``gray``: object of numpy loaded image (grayscale converted by Pillow)
       * ``crop_size``: tuple of (width, height) of loaded image
 
     :param detection: detection object with frame_encoded or frame_content
@@ -39,8 +40,10 @@ def load_image(detection: dict, clean_memory: bool = False) -> dict:
         detection[FRAME_DECODED] = decode_base64(detection.get(FRAME_CONTENT))
 
     frame_decoded = detection.get(FRAME_DECODED)
-    img = np.asarray(Image.open(BytesIO(frame_decoded)).convert('RGB'))
+    pil = Image.open(BytesIO(frame_decoded))
+    img = np.asarray(pil.convert('RGB'))
     detection[IMAGE] = img
+    detection[GRAY] = np.asarray(pil.convert('L'))
 
     # extract basic image parameters
     img = detection[IMAGE]
