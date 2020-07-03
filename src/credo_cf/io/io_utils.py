@@ -42,7 +42,7 @@ def progress_load_filter(obj: dict, count: int, ret: List[dict]) -> Optional[boo
 
     Note: it is simplest sample implementation of ``_filter`` arg for ``load_json_from_stream()``.
     """
-    skip = count - len(ret)
+    skip = count - len(ret) - 1
     if count % 10000 == 0:
         print('... just parsed %d and skip %d objects.' % (count, skip), file=sys.stderr)
 
