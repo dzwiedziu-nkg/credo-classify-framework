@@ -43,12 +43,14 @@ for device_id, device_detections in by_devices.items():
         dev_no += 1
         print('Start device %d of %d, detectons count: %d' % (dev_no, dev_count, len(detections)))
 
-        # TODO: loop for execute XOR
+        # TODO: loop for execute base_xor_filter
 
         # too_often
         goods = detections
         goods, bads = too_often(goods)
         drop_too_often += len(bads)
+
+        # TODO: too_bright
 
         # near_hot_pixel2
         goods, bads = near_hot_pixel2(goods)
