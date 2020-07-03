@@ -67,13 +67,12 @@ def progress_and_process_image(obj: dict, count: int, ret: List[dict]) -> Option
         return False
 
     try:
-        from credo_cf.image.image_utils import load_image
-        load_image(obj)
+        from credo_cf.image.image_utils import load_image, image_basic_metrics
+        load_image(obj, True)
+        image_basic_metrics(obj)
+
     except Exception as e:
         print('Fail of load image in object with ID: %d, error: %s' % (obj.get(ID), str(e)), file=sys.stderr)
         return False
-
-    obj.pop(FRAME_CONTENT)
-    obj.pop(FRAME_DECODED)
 
     return True

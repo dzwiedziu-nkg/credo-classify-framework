@@ -2,6 +2,7 @@ from io import BytesIO
 from typing import Tuple, Callable
 
 from PIL import Image
+import numpy as np
 
 from credo_cf.commons.consts import IMAGE, FRAME_DECODED, DARKNESS, BRIGHTEST, BRIGHTER_COUNT, FRAME_CONTENT, CROP_SIZE, EDGE, X, \
     WIDTH, Y, HEIGHT, CROP_X, CROP_Y
@@ -18,7 +19,7 @@ def get_brightest_channel(pixel: Tuple[int, int, int, int]) -> int:
     return max([r, g, b])
 
 
-def load_image(detection: dict) -> Image:
+def load_image(detection: dict, clean_memory: bool = False) -> dict:
     """
     Load image from ``frame_content`` to object's key with some calculated metrics.
 
@@ -29,24 +30,48 @@ def load_image(detection: dict) -> Image:
       * ``frame_encoded``: when no ``frame_encoded`` then ``frame_content`` will be decoded and stored in this key
       * ``image``: object of ``PIP`` library with loaded image
       * ``crop_size``: tuple of (width, height) of loaded image
-      * ``edge``: ``True`` when image is near edge of original image frame (half of max of width and height of loaded image)
-      * ``crop_x`` and ``crop_y``: coordinates of left-top corner of loaded image in original image frame
-
-    The ``crop_x`` and ``crop_y`` may be used to reconstruction original image frame from loaded images.
 
     :param detection: detection object with frame_encoded or frame_content
-    :return: image object
+    :param clean_memory: remove ``frame_encoded`` and ``frame_content`` for memory safe
+    :return: the same detection object from param, usable for lambda chain
     """
     if detection.get(FRAME_DECODED) is None:
         detection[FRAME_DECODED] = decode_base64(detection.get(FRAME_CONTENT))
 
     frame_decoded = detection.get(FRAME_DECODED)
-    img = Image.open(BytesIO(frame_decoded)).convert('RGBA')
+    img = np.asarray(Image.open(BytesIO(frame_decoded)).convert('RGB'))
     detection[IMAGE] = img
 
     # extract basic image parameters
-    detection[CROP_SIZE] = img.size
-    w, h = img.size
+    img = detection[IMAGE]
+    detection[CROP_SIZE] = img.shape[0], img.shape[1]
+
+    if clean_memory:
+        detection.pop(FRAME_CONTENT)
+        detection.pop(FRAME_DECODED)
+
+    return detection
+
+
+def image_basic_metrics(detection: dict) -> dict:
+    """
+    Basic metrics of hit image on whole image frame.
+
+    Required keys:
+      * ``x``, ``y``: position of hit, from original JSON
+      * ``width``, ``height``: size of original image frame, from original JSON
+      * ``crop_size``: tuple of (width, height), provided by ``load_image()``
+
+    Keys will be add:
+      * ``edge``: ``True`` when image is near edge of original image frame (half of max of width and height of loaded image)
+      * ``crop_x`` and ``crop_y``: coordinates of left-top corner of loaded image in original image frame
+
+    The ``crop_x`` and ``crop_y`` may be used to reconstruction original image frame from loaded images.
+
+    :param detection: detection object with required keys, new keys will be add
+    :return: the same detection object from param, usable for lambda chain
+    """
+    w, h = detection[CROP_SIZE]
 
     # center of crop position
     x = detection.get(X)
@@ -102,8 +127,7 @@ def load_image(detection: dict) -> Image:
     else:
         detection[CROP_X] = x - fx
         detection[CROP_Y] = y - fy
-
-    return img
+    return detection
 
 
 def measure_darkness_brightest(detection: dict, pixel_parser: Callable[[Tuple[int, int, int, int]], int] = get_brightest_channel) -> Tuple[int, int]:
