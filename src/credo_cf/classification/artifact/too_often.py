@@ -51,6 +51,6 @@ def too_often(detections: List[dict], often: int = 10, time_window: int = 60000)
         for key, key_prim in to_compare:
             for d in [*grouped.get(key), *grouped.get(key_prim)]:
                 get_and_set(d, ARTIFACT_TOO_OFTEN, 0)
-                if abs(key_prim - key_prim) < time_window:
+                if abs(key - key_prim) < time_window:
                     d[ARTIFACT_TOO_OFTEN] += 1
     return classify_by_lambda(detections, lambda x: x.get(ARTIFACT_TOO_OFTEN) >= often)

@@ -1,14 +1,13 @@
 from typing import List, Tuple
 from credo_cf.commons.utils import get_and_set
-from credo_cf.commons.consts import BRIGHT_PIXELS,GOOD_BRIGHT, IMAGE
-from credo_cf.image.image_utils import measure_darkness_brightest
-
+from credo_cf.commons.consts import BRIGHT_PIXELS,GOOD_BRIGHT, GRAY
+import numpy as np
 """
     Analysis of the detection slice by checking the brightness of the pixels
 
     :param detections: list of detections
     :param bright_pixels (int) : maximum number of bright pixels on the slice (wycinek)
-    :paramthreshold (int) – value of pixels for the bright_pixel (i.e bright pixel is when pixel have value >70)
+    :param threshold (int) – value of pixels for the bright_pixel (i.e bright pixel is when pixel have value >70)
 
 
     The code from "frame_content" is downloaded and saved as a disk image, loaded by functions from the "Image" library 
@@ -41,25 +40,17 @@ def bright_detections(detections: List[dict], bright_pixels=70, threshold=70) ->
     good = []
     bad = []
     for image in detections:
-        assert image.get(IMAGE) is not None
-        measure_darkness_brightest(image)
-
-        hit_img = image.get(IMAGE).convert('LA')
-        width, height = hit_img.size
-        pixelMap = hit_img.load()
-        bright_point = 0
-        for cy in range(height):
-            for cx in range(width):
-                a = pixelMap[cx,cy]  # a -pixel table ((p), (t)) we are only interested in p; t always == 255
-                a0 = a[0]
-                if threshold < a0:
-                    bright_point += 1
-        get_and_set(image, BRIGHT_PIXELS, bright_point)
+        img =image[GRAY]
+        count_bright_pixels= img > threshold
+        suma = int(np.sum(count_bright_pixels))
+        get_and_set(image, BRIGHT_PIXELS, suma)
         get_and_set(image, GOOD_BRIGHT, "False")
-
-        if (bright_point > 0 and bright_point < bright_pixels):
+        if 0< suma < bright_pixels:
             image[GOOD_BRIGHT] = "True"
             good.append(image)
         else:
             bad.append(image)
+
     return good, bad
+
+
