@@ -26,6 +26,22 @@ def get_and_set(obj: dict, key: Any, default: Any) -> Any:
     return o
 
 
+def get_and_add(obj: dict, key: Any, add: int or float, default: Any = 0) -> Any:
+    """
+    Dict's helper function: add value to key.
+    When key value is not exists then will be set by default value before add.
+
+    :param obj: dict object, will be modified
+    :param key: key name of numeric value (int or float)
+    :param add: value to add
+    :param default: default value
+    :return: value after add
+    """
+    get_and_set(obj, key, default)
+    obj[key] += add
+    return obj[key]
+
+
 def join_tuple(tpl: Tuple[int, int], separator: str = 'x') -> str:
     return '%d%s%d' % (tpl[0], separator, tpl[1])
 
