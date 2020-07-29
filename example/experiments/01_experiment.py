@@ -1,14 +1,20 @@
 import bz2
+import time
 import urllib.request
 import io
-from typing import List
+from typing import List, Tuple
 
-from credo_cf import load_json_from_stream, progress_and_process_image, group_by_device_id, group_by_resolution, convert_to_gray, too_often, near_hot_pixel2
+from credo_cf import load_json_from_stream, progress_and_process_image, group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, \
+    too_bright
+from credo_cf.classification.artifact.xor import xor_filter
+from credo_cf.commons.utils import get_and_add
 
 WORKING_SET = 'http://mars.iti.pk.edu.pl/~nkg/credo/working_set.json.bz2'
 
+time_profile = {}
 
-def download_working_set(url: str) -> List[dict]:
+
+def download_working_set(url: str) -> Tuple[List[dict], int]:
     print('Download working set...')
     data = urllib.request.urlopen(url).read()
 
@@ -18,47 +24,91 @@ def download_working_set(url: str) -> List[dict]:
     print('Prase JSON...')
     objs, count = load_json_from_stream(io.StringIO(json_content), progress_and_process_image)
     print('Parsed %d, skipped %d' % (count, count - len(objs)))
-    return objs
+    return objs, count
 
 
-all_detections = download_working_set(WORKING_SET)
+def start_analyze(all_detections):
+    # print('Make custom grayscale conversion...')
+    # for d in all_detections:
+    #     convert_to_gray(d)
 
-# print('Make custom grayscale conversion...')
-# for d in all_detections:
-#     convert_to_gray(d)
+    ts_load = time.time()
+    print('Group by devices...')
+    by_devices = group_by_device_id(all_detections)
+    get_and_add(time_profile, 'grouping', time.time() - ts_load)
 
-print('Group by devices...')
-by_devices = group_by_device_id(all_detections)
+    drop_counts = {}
+    leave_good = 0
 
-drop_too_often = 0
-drop_near_hot_pixel2 = 0
-leave_good = 0
+    print('Run experiment...')
+    dev_no = 0
+    dev_count = len(by_devices.keys())
+    for device_id, device_detections in by_devices.items():
 
-print('Run experiment...')
-dev_no = 0
-dev_count = len(by_devices.keys())
-for device_id, device_detections in by_devices.items():
-    by_resolution = group_by_resolution(device_detections)
-    for resolution, detections in by_resolution.items():
-        dev_no += 1
-        print('Start device %d of %d, detectons count: %d' % (dev_no, dev_count, len(detections)))
+        ts_load = time.time()
+        by_resolution = group_by_resolution(device_detections)
+        get_and_add(time_profile, 'grouping', time.time() - ts_load)
 
-        # TODO: loop for execute base_xor_filter
+        for resolution, detections in by_resolution.items():
+            dev_no += 1
+            print('Start device %d of %d, detectons count: %d' % (dev_no, dev_count, len(detections)))
 
-        # too_often
-        goods = detections
-        goods, bads = too_often(goods)
-        drop_too_often += len(bads)
+            # too_often
+            ts_load = time.time()
 
-        # TODO: too_bright
+            goods = detections
+            goods, bads = too_often(goods)
+            get_and_add(drop_counts, 'too_often', len(bads))
 
-        # near_hot_pixel2
-        goods, bads = near_hot_pixel2(goods)
-        drop_near_hot_pixel2 += len(bads)
+            get_and_add(time_profile, 'too_often', time.time() - ts_load)
 
-        # end, counting goods
-        leave_good += len(goods)
+            # too_bright
+            ts_load = time.time()
+            goods, bads = too_bright(goods, 70, 70)
+            get_and_add(time_profile, 'too_bright', time.time() - ts_load)
+            get_and_add(drop_counts, 'too_bright', len(bads))
 
-print('Drop too_often: %d' % drop_too_often)
-print('Drop near_hot_pixel2: %d' % drop_near_hot_pixel2)
-print('Goods: %d' % leave_good)
+            # xor filter
+            ts_load = time.time()
+            if len(goods) > 1:
+                x_or = xor_filter(goods)
+            get_and_add(time_profile, 'xor', time.time() - ts_load)
+
+            # near_hot_pixel2
+            ts_load = time.time()
+            goods, bads = near_hot_pixel2(goods)
+            get_and_add(time_profile, 'near_hot_pixel2', time.time() - ts_load)
+
+            get_and_add(drop_counts, 'drop_near_hot_pixel2', len(bads))
+
+            # end, counting goods
+            leave_good += len(goods)
+
+    print('\nCount of cut off by filters:')
+    for f, v in drop_counts.items():
+        print('%s: %d' % (f, v))
+    print('Goods: %d' % leave_good)
+
+
+def main():
+    # config data source, please uncomment and use one from both
+
+    ts_load = time.time()
+    # choice 1: download from website
+    working_sets = [download_working_set(WORKING_SET)]  # download our working set from our hosting
+
+    # choice 2: load from files
+    # file_names = ['working_set.json']
+    # working_sets = [load_json(fn, progress_and_process_image) for fn in file_names]
+    get_and_add(time_profile, 'load', time.time() - ts_load)
+
+    for all_detections, count in working_sets:
+        start_analyze(all_detections)
+
+    print('\nTime count:')
+    for ts, tv in time_profile.items():
+        print('time: %03d - %s' % (int(tv), ts))
+
+
+if __name__ == '__main__':
+    main()
