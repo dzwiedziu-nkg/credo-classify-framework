@@ -13,7 +13,7 @@ def print_log(content: str, timer: Optional[float] = None) -> float:
 
 def get_and_set(obj: dict, key: Any, default: Any) -> Any:
     o = obj.get(key, default)
-    obj[key] = o
+    obj[key] = o if o is not None else default
     return o
 
 
