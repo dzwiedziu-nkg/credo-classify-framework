@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 import numpy as np
 
 from credo_cf.commons.filters import base_xor_filter
@@ -57,6 +57,5 @@ def xor_filter(detections: List[dict], mode: str = 'pair', var: int = 30) -> Lis
         for i in range(size):
             detections[i]['xor_filter_passed'] = True
             detections[i]['gray'] = base_xor_filter(detections[i]['gray'], avg_image, var)
-
 
     return detections
