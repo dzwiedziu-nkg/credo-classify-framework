@@ -12,6 +12,15 @@ def print_log(content: str, timer: Optional[float] = None) -> float:
 
 
 def get_and_set(obj: dict, key: Any, default: Any) -> Any:
+    """
+    Dict's helper function: get value from key.
+    When key value is not exists then will be set by default value before get.
+
+    :param obj: dict object, may be modified
+    :param key: key name
+    :param default: default value
+    :return: key value or default value
+    """
     o = obj.get(key, default)
     obj[key] = o if o is not None else default
     return o
