@@ -6,6 +6,7 @@ import numpy as np
 
 from credo_cf.commons.consts import IMAGE, FRAME_DECODED, DARKNESS, BRIGHTEST, BRIGHTER_COUNT, FRAME_CONTENT, CROP_SIZE, EDGE, X, \
     WIDTH, Y, HEIGHT, CROP_X, CROP_Y, GRAY
+from credo_cf.image.gray import rgb2gray
 from credo_cf.io.io_utils import decode_base64
 
 
@@ -43,7 +44,7 @@ def load_image(detection: dict, clean_memory: bool = False) -> dict:
     pil = Image.open(BytesIO(frame_decoded))
     img = np.asarray(pil.convert('RGB'))
     detection[IMAGE] = img
-    detection[GRAY] = np.asarray(pil.convert('L'))
+    detection[GRAY] = rgb2gray(np.asarray(detection[IMAGE]))
 
     # extract basic image parameters
     img = detection[IMAGE]
