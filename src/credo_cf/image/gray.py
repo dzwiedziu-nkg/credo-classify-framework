@@ -76,8 +76,7 @@ def convert_to_gray(detection: dict, grayscale: Callable[[List[int]], float] = g
     return detection
 
 
-
-def rgb2gray(rgb, coeff=(1.0, 1.0, 1.0), normalize=True):
+def rgb2gray(rgb, coeff=None, normalize=True):
     """
     Conversion from RGB (3-channels) image to grayscale image.
     params rgb: numpy image
@@ -86,6 +85,9 @@ def rgb2gray(rgb, coeff=(1.0, 1.0, 1.0), normalize=True):
 
     return: grayscale numpy image
     """
+    if coeff is None:
+        coeff = (1.0, 1.0, 1.0)
+
     dot_product = np.dot(rgb[..., :3].astype('int64'), coeff)
     gray = (dot_product / sum(coeff)).astype('uint8') if (normalize == True) else dot_product.astype('int64')
 
