@@ -13,9 +13,6 @@ def base_xor_filter(im: np.float, ref: np.float, var: int = 70) -> np.float:
     :return: filtered image
     """
 
-    im = np.dot(im[..., :3], (0.2989, 0.5870, 0.1140))
-    ref = np.dot(ref[..., :3], (0.2989, 0.5870, 0.1140))
-
     diff = (np.abs(im - ref) <= var)
 
     mask = np.ones(len(im)).astype(bool)  # same shape as the array
