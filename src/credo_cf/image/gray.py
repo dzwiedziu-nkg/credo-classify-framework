@@ -5,7 +5,7 @@ from PIL import Image
 from credo_cf.io.io_utils import decode_base64
 from io import BytesIO
 from credo_cf import IMAGE,GRAY
-from credo_cf.commons.utils import get_and_set
+
 
 def gray_max(colors: List[int]) -> float:
     """
@@ -47,6 +47,7 @@ def gray_rgb(colors: List[int]) -> float:
     r, g, b = colors
     return 0.07 * r + 0.72 * g + 0.21 * b
 
+
 def gray_la(colors: List[int]) -> float:
     """
     Standard LA form PIL.Image -> grayscale transformation.
@@ -56,6 +57,7 @@ def gray_la(colors: List[int]) -> float:
     """
     r, g, b = colors
     return 0.299 * r + 0.587 * g + 0.114 * b
+
 
 def convert_to_gray(detection: dict, grayscale: Callable[[List[int]], float] = gray_rgb):
     """
