@@ -91,7 +91,7 @@ def rgb2gray(rgb, coeff=None, normalize=True):
         coeff = (1.0, 1.0, 1.0)
 
     dot_product = np.dot(rgb[..., :3].astype('int64'), coeff)
-    gray = (dot_product / sum(coeff)).astype('uint8') if (normalize == True) else dot_product.astype('int64')
+    gray = (dot_product / sum(coeff)).astype('uint8') if normalize else dot_product.astype('int64')
 
     return gray
 
