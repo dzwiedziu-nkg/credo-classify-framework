@@ -9,7 +9,7 @@ from io import StringIO
 LoadJsonCallback = Callable[[dict, int, List[dict]], Optional[bool]]
 
 
-def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = None) -> Tuple[List[dict], int]:
+def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = None) -> Tuple[List[dict], int]:
     """
     Extract flat objects from array in JSON.
 
@@ -44,11 +44,11 @@ def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = 
 
     :param _input: input text stream with JSON content
 
-    :param _filter: optional callback function. Can be used for filter, progress notification,
+    :param _parser: optional callback function. Can be used for filter, progress notification,
       cancelling of read next and run some processes on parsed object.
       When is None then return effect is equivalent to return True by always.
 
-    The ``_filter(obj, count, ret)`` callback provided as arg:
+    The ``_parser(obj, count, ret)`` callback provided as arg:
       Can be used for filter, progress notification and cancelling of read next.
       See ``progress_load_filter()`` or ``progress_and_process_image()`` for example how to implement custom callback method.
 
@@ -58,7 +58,7 @@ def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = 
         * ``ret``: list of just appended objects
 
       Return effect:
-        * ``True``: parsed object will be append to ``ret`` list. Similar when ``_filter`` arg was not provided.
+        * ``True``: parsed object will be append to ``ret`` list. Similar when ``_parser`` arg was not provided.
         * ``False``: object will be ignored (will not be append to ``ret`` list)
         * ``None``: object will be ignored and next object loop will be broken (cancel).
 
@@ -92,10 +92,10 @@ def load_json_from_stream(_input: TextIO, _filter: Optional[LoadJsonCallback] = 
                     buff = None
 
                     count += 1
-                    if filter is None:
+                    if _parser is None:
                         ret.append(o)
                     else:
-                        fr = _filter(o, count, ret)
+                        fr = _parser(o, count, ret)
                         if fr is None:
                             done = True
                             break
