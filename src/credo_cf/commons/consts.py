@@ -48,3 +48,5 @@ ARTIFACT_NEAR_HOT_PIXEL2 = 'artifact_near_hot_pixel2'  # count of occurrences fo
 
 BRIGHT_PIXELS = 'bright_pixels'  # number of bright pixels (too_bright.py)
 GOOD_BRIGHT = 'good_bright'       # Image isn't too bright or too dark? True / False (too_bright.py)
+
+NOISE_THRESHOLD = 'noise_threshold'  # upper noise threshold
