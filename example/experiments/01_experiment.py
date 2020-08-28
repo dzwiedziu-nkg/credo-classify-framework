@@ -6,7 +6,7 @@ from typing import List, Tuple
 
 from credo_cf import load_json_from_stream, progress_and_process_image, group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, \
     too_bright
-from credo_cf.classification.artifact.xor import xor_filter
+from credo_cf import xor_preprocess
 from credo_cf.commons.utils import get_and_add
 
 WORKING_SET = 'http://mars.iti.pk.edu.pl/~nkg/credo/working_set.json.bz2'
@@ -71,7 +71,7 @@ def start_analyze(all_detections):
             # xor filter
             ts_load = time.time()
             if len(goods) > 1:
-                x_or = xor_filter(goods)
+                x_or = xor_preprocess(goods)
             get_and_add(time_profile, 'xor', time.time() - ts_load)
 
             # near_hot_pixel2

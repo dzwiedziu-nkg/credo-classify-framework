@@ -4,7 +4,7 @@ import numpy as np
 from credo_cf.commons.filters import base_xor_filter
 
 
-def xor_filter(detections: List[dict], mode: str = 'pair', var: int = 30) -> List[dict]:
+def xor_preprocess(detections: List[dict], mode: str = 'pair', var: int = 30) -> List[dict]:
     """
     The function runs a discrete XOR filter what enables to remove some noise existing on image. The filter works on pairs of images
     where one of them is considered as filtered and the other one provide the reference background.
