@@ -19,12 +19,18 @@ Exclusion rules:
 import glob
 import json
 import os
+import sys
 import threading
 import time
-from concurrent.futures.thread import ThreadPoolExecutor
+from io import BytesIO
+from multiprocessing import Pool
 from typing import Optional, List
 
-from credo_cf import progress_and_process_image, group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, CROP_SIZE
+from PIL import Image
+
+from credo_cf import group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, FRAME_CONTENT, \
+    ARTIFACT_NEAR_HOT_PIXEL2, ARTIFACT_TOO_OFTEN
+from credo_cf.io.io_utils import decode_base64
 
 INPUT_DIR = '/tmp/credo/source'
 PASSED_DIR = '/tmp/credo/passed'
@@ -32,9 +38,12 @@ OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
 
 
-def write_detections(detections: List[dict], fn: str):
+def write_detections(detections: List[dict], fn: str, ident=False):
     with open(fn, 'w') as json_file:
-        json.dump({'detections': detections}, json_file)
+        if ident:
+            json.dump({'detections': detections}, json_file, indent=2)
+        else:
+            json.dump({'detections': detections}, json_file)
 
 
 def start_analyze(all_detections, log_prefix):
@@ -65,13 +74,29 @@ def start_analyze(all_detections, log_prefix):
             print('%s    ... dropped by near_hot_pixel2: %d' % (log_prefix, len(bads)))
 
             # end, counting goods
-            dropped = 0
-            for d in goods:
-                if d.get(CROP_SIZE) != (60, 60):
-                    d[CLASSIFIED] = CLASS_ARTIFACT
-                    dropped += 1
-            print('%s    ... dropped by non 60x60 size: %d' % (log_prefix, dropped))
-            print('%s    ... goods: %d' % (log_prefix, len(goods) - dropped))
+            print('%s    ... goods: %d' % (log_prefix, len(goods)))
+
+
+def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
+    log_prefix = '%s: ' % str(threading.get_ident())
+
+    skip = count - len(ret) - 1
+    if count % 10000 == 0:
+        print('%s  ... just parsed %d and skip %d objects.' % (log_prefix, count, skip))
+
+    if not obj.get(FRAME_CONTENT):
+        return False
+
+    try:
+        from credo_cf.image.image_utils import load_image, image_basic_metrics
+        frame_decoded = decode_base64(obj.get(FRAME_CONTENT))
+        pil = Image.open(BytesIO(frame_decoded))
+        if pil.size == (60, 60):
+            return True
+
+    except Exception as e:
+        print('%sFail of load image in object with ID: %d, error: %s' % (log_prefix, obj.get(ID), str(e)))
+    return False
 
 
 def run_file(fn):
@@ -82,26 +107,32 @@ def run_file(fn):
     fn_load = time.time()
 
     # load and analyse
-    detections, count = load_json(fn, progress_and_process_image)
+    detections, count = load_json(fn, load_parser)
     print('%s  ... droped by non image: %d' % (log_prefix, count - len(detections)))
     start_analyze(detections, log_prefix)
 
     # found IDs of goods
-    leave_good = set()
+    leave_good = []
     for d in detections:
         if d.get(CLASSIFIED) != CLASS_ARTIFACT:
-            leave_good.add(d.get(ID))
+            if CLASSIFIED in d.keys():
+                del d[CLASSIFIED]
+            if ARTIFACT_NEAR_HOT_PIXEL2 in d.keys():
+                del d[ARTIFACT_NEAR_HOT_PIXEL2]
+            if ARTIFACT_TOO_OFTEN in d.keys():
+                del d[ARTIFACT_TOO_OFTEN]
+            leave_good.append(d)
 
     # load again and save as
-    to_save, count = load_json(fn, lambda d, c, r: d.get(ID) in leave_good)
     fn_out = '%s/%s' % (OUTPUT_DIR, fn_name)
-    write_detections(to_save, fn_out)
+    write_detections(leave_good, fn_out)
 
-    print('%s  file %s done, since start: %03ds, hits with images: %d, dropped: %d, leaved: %d' % (log_prefix, fn_name, time.time() - fn_load, count, count - len(to_save), len(to_save)))
+    print('%s  file %s done, since start: %03ds, hits with images: %d, dropped: %d, leaved: %d' % (log_prefix, fn_name, time.time() - fn_load, count, count - len(leave_good), len(leave_good)))
     os.rename(fn, '%s/%s' % (PASSED_DIR, fn_name))
+    return len(leave_good)
 
 
-part = []
+part = []  # safe because is out of the multi-thread part
 part_no = 0
 
 
@@ -124,18 +155,7 @@ def part_write(d: dict, c: int, r: List[dict]) -> Optional[bool]:
     return False
 
 
-def main():
-    # list all files in INPUT_DIR
-    files = glob.glob('%s/*.json' % INPUT_DIR)
-    with ThreadPoolExecutor(max_workers=4) as executor:
-        # each file parsed separately
-        results = executor.map(run_file, files)
-
-        # waiting for all tasks
-        for result in results:
-            pass
-
-    # divide by 100000 parts
+def div_per_parts():
     files = glob.glob('%s/*.json' % OUTPUT_DIR)
     files = sorted(files)
 
@@ -146,5 +166,18 @@ def main():
         write_part_and_clean()
 
 
+def main():
+    # list all files in INPUT_DIR
+    files = glob.glob('%s/*.json' % INPUT_DIR)
+
+    with Pool(4) as pool:
+        # each file parsed separately
+        pool.map(run_file, files)
+
+    # divide by 100000 parts
+    div_per_parts()
+
+
 if __name__ == '__main__':
     main()
+    sys.exit(0)  # not always close
