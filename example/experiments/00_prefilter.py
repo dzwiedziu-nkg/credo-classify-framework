@@ -18,6 +18,7 @@ Exclusion rules:
 """
 import glob
 import json
+import os
 import threading
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -26,6 +27,7 @@ from typing import Optional, List
 from credo_cf import progress_and_process_image, group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, CROP_SIZE
 
 INPUT_DIR = '/tmp/credo/source'
+PASSED_DIR = '/tmp/credo/passed'
 OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
 
@@ -96,6 +98,7 @@ def run_file(fn):
     write_detections(to_save, fn_out)
 
     print('%s  file %s done, since start: %03ds, hits with images: %d, dropped: %d, leaved: %d' % (log_prefix, fn_name, time.time() - fn_load, count, count - len(to_save), len(to_save)))
+    os.rename(fn, '%s/%s' % (PASSED_DIR, fn_name))
 
 
 part = []
