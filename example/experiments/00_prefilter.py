@@ -21,11 +21,18 @@ import json
 import threading
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
+from typing import Optional, List
 
 from credo_cf import progress_and_process_image, group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, CROP_SIZE
 
 INPUT_DIR = '/tmp/credo/source'
 OUTPUT_DIR = '/tmp/credo/destination'
+PARTS_DIR = '/tmp/credo/parts'
+
+
+def write_detections(detections: List[dict], fn: str):
+    with open(fn, 'w') as json_file:
+        json.dump({'detections': detections}, json_file)
 
 
 def start_analyze(all_detections, log_prefix):
@@ -86,20 +93,54 @@ def run_file(fn):
     # load again and save as
     to_save, count = load_json(fn, lambda d, c, r: d.get(ID) in leave_good)
     fn_out = '%s/%s' % (OUTPUT_DIR, fn_name)
-    with open(fn_out, 'w') as json_file:
-        json.dump(to_save, json_file)
+    write_detections(to_save, fn_out)
 
     print('%s  file %s done, since start: %03ds, hits with images: %d, dropped: %d, leaved: %d' % (log_prefix, fn_name, time.time() - fn_load, count, count - len(to_save), len(to_save)))
+
+
+part = []
+part_no = 0
+
+
+def write_part_and_clean():
+    global part
+    global part_no
+
+    part_no += 1
+    write_detections(part, '%s/%d.json' % (PARTS_DIR, part_no))
+    print('Writen part no %d with %d hits' % (part_no, len(part)))
+    part = []
+
+
+def part_write(d: dict, c: int, r: List[dict]) -> Optional[bool]:
+    global part
+
+    part.append(d)
+    if len(part) == 100000:
+        write_part_and_clean()
+    return False
 
 
 def main():
     # list all files in INPUT_DIR
     files = glob.glob('%s/*.json' % INPUT_DIR)
-    with ThreadPoolExecutor(max_workers=16) as executor:
+    with ThreadPoolExecutor(max_workers=4) as executor:
         # each file parsed separately
         results = executor.map(run_file, files)
+
+        # waiting for all tasks
         for result in results:
             pass
+
+    # divide by 100000 parts
+    files = glob.glob('%s/*.json' % OUTPUT_DIR)
+    files = sorted(files)
+
+    for fn in files:
+        load_json(fn, part_write)
+
+    if len(part) > 0:
+        write_part_and_clean()
 
 
 if __name__ == '__main__':
