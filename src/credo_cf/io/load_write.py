@@ -87,6 +87,12 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                     stage = 2  # and continue parsing this character in stage 2
             if stage == 2:
                 if a == '}':
+                    if buff is None:
+                        errors.append('invalid stage, please review this file in debugger')
+                        buff = StringIO()
+                        stage = 1
+                        continue
+
                     buff.write(a)
                     obj_json = buff.getvalue()
                     buff.close()
@@ -107,6 +113,7 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                         stage = 1
                     except:
                         errors.append(obj_json)
+                        stage = 1
                 else:
                     buff.write(a)
         if done:
