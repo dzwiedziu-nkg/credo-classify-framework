@@ -206,7 +206,7 @@ def write_part_and_clean():
     global part_no
 
     part_no += 1
-    write_detections(part, '%s/%d.json' % (PARTS_DIR, part_no))
+    write_detections(part, '%s/%03d.json' % (PARTS_DIR, part_no))
     print('Writen part no %d with %d hits' % (part_no, len(part)))
     part = []
 
