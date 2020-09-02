@@ -1,5 +1,5 @@
 import sys
-from base64 import decodebytes
+from base64 import decodebytes, b64encode
 from pathlib import Path
 from typing import List, Optional
 
@@ -17,7 +17,16 @@ def decode_base64(frame_content: str) -> bytes:
     return decodebytes(str.encode(frame_content))
 
 
-def store_png(root: str, path: List[str or int], name: str or int, image: bytes or Image) -> None:
+def encode_base64(data: bytes) -> str:
+    """
+    Convert bytes to str with data of bytes encoded by base64
+    :param data: binary data
+    :return: utf-8 string with encoded data
+    """
+    return b64encode(data).decode("UTF-8")
+
+
+def store_png(root: str, path: List[str or int], name: str or int, image: bytes or Image or str) -> None:
     """
     Save image in PNG file.
     :param root: root directory for PNG files storage
