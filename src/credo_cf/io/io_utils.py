@@ -23,17 +23,22 @@ def store_png(root: str, path: List[str or int], name: str or int, image: bytes 
     :param root: root directory for PNG files storage
     :param path: subdirectories, will be created when not exists
     :param name: file name without extensions
-    :param image: instance of PIL.Image or array of bytes
+    :param image: instance of PIL.Image or array of bytes or string in base64
     """
     dirs = '/'.join(map(lambda x: str(x), path))
     p = "%s/%s" % (root, dirs)
     fn = '%s/%s.png' % (p, str(name))
     Path(p).mkdir(parents=True, exist_ok=True)
-    if isinstance(image, bytes):
+
+    _image = image
+    if isinstance(_image, str):
+        _image = decode_base64(_image)
+
+    if isinstance(_image, bytes):
         with open(fn, 'wb') as f:
-            f.write(image)
+            f.write(_image)
     else:
-        image.save(fn)
+        _image.save(fn)
 
 
 def progress_load_filter(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
