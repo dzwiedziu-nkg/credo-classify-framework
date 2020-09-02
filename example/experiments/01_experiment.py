@@ -57,14 +57,14 @@ def start_analyze(all_detections):
             ts_load = time.time()
 
             goods = detections
-            goods, bads = too_often(goods)
+            bads, goods = too_often(goods)
             get_and_add(drop_counts, 'too_often', len(bads))
 
             get_and_add(time_profile, 'too_often', time.time() - ts_load)
 
             # too_bright
             ts_load = time.time()
-            goods, bads = too_bright(goods, 70, 70)
+            bads, goods = too_bright(goods, 70, 70)
             get_and_add(time_profile, 'too_bright', time.time() - ts_load)
             get_and_add(drop_counts, 'too_bright', len(bads))
 
@@ -76,7 +76,7 @@ def start_analyze(all_detections):
 
             # near_hot_pixel2
             ts_load = time.time()
-            goods, bads = near_hot_pixel2(goods)
+            bads, goods = near_hot_pixel2(goods)
             get_and_add(time_profile, 'near_hot_pixel2', time.time() - ts_load)
 
             get_and_add(drop_counts, 'drop_near_hot_pixel2', len(bads))
