@@ -11,6 +11,7 @@ Exclusion rules:
 
  * non image
  * non 60x60 size
+ * non X and Y in metadata
  * too_often(10, 60000)
  * near_hot_pixel2(3, 5)
  * # too_bright(70, 70)  # currently not used
@@ -29,13 +30,15 @@ from typing import Optional, List
 from PIL import Image
 
 from credo_cf import group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, FRAME_CONTENT, \
-    ARTIFACT_NEAR_HOT_PIXEL2, ARTIFACT_TOO_OFTEN
-from credo_cf.io.io_utils import decode_base64
+    ARTIFACT_NEAR_HOT_PIXEL2, ARTIFACT_TOO_OFTEN, X, Y, DEVICE_ID, group_by_timestamp_division, IMAGE, decode_base64, store_png, encode_base64
 
 INPUT_DIR = '/tmp/credo/source'
 PASSED_DIR = '/tmp/credo/passed'
 OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
+ERROR_DIR = '/tmp/credo/error'
+DEBUG = False
+DEBUG_DIR = '/tmp/credo/debug'
 
 
 def write_detections(detections: List[dict], fn: str, ident=False):
@@ -44,6 +47,13 @@ def write_detections(detections: List[dict], fn: str, ident=False):
             json.dump({'detections': detections}, json_file, indent=2)
         else:
             json.dump({'detections': detections}, json_file)
+
+
+def store_png_for_debug(detections: List[dict], subdirs: List[str]):
+    if DEBUG:
+        for d in detections:
+            store_png(DEBUG_DIR, subdirs, str(d.get(ID)), d.get(FRAME_CONTENT))
+            store_png(DEBUG_DIR, [*subdirs, d.get(DEVICE_ID)], str(d.get(ID)), d.get(FRAME_CONTENT))
 
 
 def start_analyze(all_detections, log_prefix):
@@ -63,18 +73,61 @@ def start_analyze(all_detections, log_prefix):
             goods = detections
 
             # too_often
-            goods, bads = too_often(goods)
+            bads, goods = too_often(goods)
             print('%s    ... dropped by too_often: %d' % (log_prefix, len(bads)))
+            store_png_for_debug(bads, ['too_often'])
 
             # too_bright
-            # goods, bads = too_bright(goods, 70, 70)
+            # bads, goods = too_bright(goods, 70, 70)
 
             # near_hot_pixel2
-            goods, bads = near_hot_pixel2(goods)
+            bads, goods = near_hot_pixel2(goods)
             print('%s    ... dropped by near_hot_pixel2: %d' % (log_prefix, len(bads)))
+            store_png_for_debug(bads, ['near_hot_pixel2'])
 
             # end, counting goods
             print('%s    ... goods: %d' % (log_prefix, len(goods)))
+            store_png_for_debug(goods, ['goods'])
+
+            # try to merge hits on the same frame
+            by_frame = group_by_timestamp_division(device_detections)
+            reconstructed = 0
+            for timestmp, in_frame in by_frame.items():
+                if len(in_frame) <= 1:
+                    continue
+
+                image = Image.new('RGBA', (resolution[0], resolution[1]), (0, 0, 0))
+
+                for d in reversed(in_frame):
+                    cx = d.get(X) - 30
+                    cy = d.get(Y) - 30
+                    w, h = (60, 60)
+
+                    if DEBUG:
+                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'before'], str(d.get(ID)), d.get(FRAME_CONTENT))
+
+                    image.paste(d.get(IMAGE), (cx, cy, cx + w, cy + h))
+
+                    # fix bug in early CREDO Detector App: black filled boundary 1px too large
+                    image.paste(image.crop((cx + w - 1, cy, cx + w, cy + h)), (cx + w, cy, cx + w + 1, cy + h))
+                    image.paste(image.crop((cx, cy + h - 1, cx + w, cy + h)), (cx, cy + h, cx + w, cy + h + 1))
+                    image.paste(image.crop((cx + w - 1, cy + h - 1, cx + w, cy + h)), (cx + w, cy + h, cx + w + 1, cy + h + 1))
+
+                for d in in_frame:
+                    cx = d.get(X) - 30
+                    cy = d.get(Y) - 30
+                    w, h = (60, 60)
+
+                    hit_img = image.crop((cx, cy, cx + w, cy + h))
+                    with BytesIO() as output:
+                        hit_img.save(output, format="png")
+                        d[FRAME_CONTENT] = encode_base64(output.getvalue())
+                    if DEBUG:
+                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'after'], str(d.get(ID)), d.get(FRAME_CONTENT))
+                reconstructed += 1
+                if DEBUG:
+                    store_png(DEBUG_DIR, ['reconstruct', str(device_id)], str(timestmp), image)
+            print('%s    ... reconstructed frames: %d' % (log_prefix, reconstructed))
 
 
 def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
@@ -84,7 +137,7 @@ def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
     if count % 10000 == 0:
         print('%s  ... just parsed %d and skip %d objects.' % (log_prefix, count, skip))
 
-    if not obj.get(FRAME_CONTENT):
+    if not obj.get(FRAME_CONTENT) or not obj.get(X) or not obj.get(Y):
         return False
 
     try:
@@ -92,6 +145,7 @@ def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
         frame_decoded = decode_base64(obj.get(FRAME_CONTENT))
         pil = Image.open(BytesIO(frame_decoded))
         if pil.size == (60, 60):
+            obj[IMAGE] = pil
             return True
 
     except Exception as e:
@@ -111,6 +165,11 @@ def run_file(fn):
     print('%s  ... droped by non image: %d' % (log_prefix, count - len(detections)))
     if len(errors):
         print('%s   ... errors in: %s' % (log_prefix, fn))
+        lp = 0
+        for error in errors:
+            lp += 1
+            with open('%s/%s-%06d.txt' % (ERROR_DIR, fn_name, lp), 'w') as f:
+                f.write(error)
 
     start_analyze(detections, log_prefix)
 
@@ -124,6 +183,8 @@ def run_file(fn):
                 del d[ARTIFACT_NEAR_HOT_PIXEL2]
             if ARTIFACT_TOO_OFTEN in d.keys():
                 del d[ARTIFACT_TOO_OFTEN]
+            if IMAGE in d.keys():
+                del d[IMAGE]
             leave_good.append(d)
 
     # load again and save as
@@ -131,7 +192,8 @@ def run_file(fn):
     write_detections(leave_good, fn_out)
 
     print('%s  file %s done, since start: %03ds, hits with images: %d, dropped: %d, leaved: %d' % (log_prefix, fn_name, time.time() - fn_load, count, count - len(leave_good), len(leave_good)))
-    os.rename(fn, '%s/%s' % (PASSED_DIR, fn_name))
+    if not DEBUG:
+        os.rename(fn, '%s/%s' % (PASSED_DIR, fn_name))
     return len(leave_good)
 
 
@@ -173,9 +235,13 @@ def main():
     # list all files in INPUT_DIR
     files = glob.glob('%s/*.json' % INPUT_DIR)
 
-    with Pool(4) as pool:
-        # each file parsed separately
-        pool.map(run_file, files)
+    if DEBUG:
+        for fn in files:
+            run_file(fn)
+    else:
+        with Pool(4) as pool:
+            # each file parsed separately
+            pool.map(run_file, files)
 
     # divide by 100000 parts
     div_per_parts()
