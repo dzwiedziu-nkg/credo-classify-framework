@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from PIL import Image
 
-from credo_cf.commons.consts import FRAME_CONTENT, ID, FRAME_DECODED
+from credo_cf.commons.consts import FRAME_CONTENT, ID
 
 
 def decode_base64(frame_content: str) -> bytes:
