@@ -86,6 +86,7 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                     buff = StringIO()
                     stage = 2  # and continue parsing this character in stage 2
             if stage == 2:
+                # FIXME: support the content of metadata, should be easy, all is quoted by " and inner quotes are escaped by \"
                 if a == '}':
                     if buff is None:
                         errors.append('invalid stage, please review this file in debugger')
