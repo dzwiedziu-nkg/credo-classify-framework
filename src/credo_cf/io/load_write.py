@@ -9,7 +9,7 @@ from io import StringIO
 LoadJsonCallback = Callable[[dict, int, List[dict]], Optional[bool]]
 
 
-def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = None) -> Tuple[List[dict], int]:
+def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = None) -> Tuple[List[dict], int, List[str]]:
     """
     Extract flat objects from array in JSON.
 
@@ -62,11 +62,12 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
         * ``False``: object will be ignored (will not be append to ``ret`` list)
         * ``None``: object will be ignored and next object loop will be broken (cancel).
 
-    :return: tuple of (list of appended objects, count of all parsed objects from input)
+    :return: tuple of (list of appended objects, count of all parsed objects from input, errors of parsed)
     """
 
     ret = []
     count = 0
+    errors = []
 
     stage = 0
     buff = None
@@ -87,30 +88,34 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
             if stage == 2:
                 if a == '}':
                     buff.write(a)
-                    o = loads(buff.getvalue())
+                    obj_json = buff.getvalue()
                     buff.close()
                     buff = None
+                    try:
+                        o = loads(obj_json)
 
-                    count += 1
-                    if _parser is None:
-                        ret.append(o)
-                    else:
-                        fr = _parser(o, count, ret)
-                        if fr is None:
-                            done = True
-                            break
-                        elif fr:
+                        count += 1
+                        if _parser is None:
                             ret.append(o)
-                    stage = 1
+                        else:
+                            fr = _parser(o, count, ret)
+                            if fr is None:
+                                done = True
+                                break
+                            elif fr:
+                                ret.append(o)
+                        stage = 1
+                    except:
+                        errors.append(obj_json)
                 else:
                     buff.write(a)
         if done:
             break
 
-    return ret, count
+    return ret, count, errors
 
 
-def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int]:
+def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int, List[str]]:
     """
     Wrapper on ``load_json_from_stream()``.
 

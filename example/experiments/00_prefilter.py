@@ -107,8 +107,11 @@ def run_file(fn):
     fn_load = time.time()
 
     # load and analyse
-    detections, count = load_json(fn, load_parser)
+    detections, count, errors = load_json(fn, load_parser)
     print('%s  ... droped by non image: %d' % (log_prefix, count - len(detections)))
+    if len(errors):
+        print('%s   ... errors in: %s' % (log_prefix, fn))
+
     start_analyze(detections, log_prefix)
 
     # found IDs of goods
