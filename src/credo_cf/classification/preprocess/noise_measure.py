@@ -1,11 +1,9 @@
-from typing import List
 import numpy as np
 
-from credo_cf import GRAY, NOISE_THRESHOLD
-from credo_cf.commons.filters import base_xor_filter
+from credo_cf import GRAY, NOISE_THRESHOLD, CLEARLY
 
 
-def noise_cut_preprocess(detection: dict, rows: int = 3, cols: int = 3) -> dict:
+def noise_measure_preprocess(detection: dict, rows: int = 3, cols: int = 3, div: float = 4) -> dict:
     """
     Search for upper noise threshold by:
 
@@ -38,18 +36,22 @@ def noise_cut_preprocess(detection: dict, rows: int = 3, cols: int = 3) -> dict:
     h_step = h // rows
     w_step = w // cols
 
-    noise_threshold = 999999999
+    min_of_max = 999999999
+    global_max = 0
 
     h_pos = 0
     while h_pos < h:
         w_pos = 0
         while w_pos < w:
-            sub_gray = gray[w_pos:w_pos + w_step, h_pos:h_step + h_step]
+            sub_gray = gray[w_pos:w_pos + w_step, h_pos:h_pos + h_step]
             local_max = np.max(sub_gray)
-            noise_threshold = min(noise_threshold, local_max)
+            min_of_max = min(min_of_max, local_max)
             w_pos += w_step
+            global_max = max(local_max, global_max)
         h_pos += h_step
 
-    detection[NOISE_THRESHOLD] = noise_threshold
+    clearly = global_max - min_of_max
+    detection[CLEARLY] = clearly
+    detection[NOISE_THRESHOLD] = clearly / div + min_of_max
 
     return detection
