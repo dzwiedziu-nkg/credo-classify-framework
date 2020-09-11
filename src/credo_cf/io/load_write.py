@@ -171,14 +171,12 @@ def deserialize(input_file: str) -> Any:
         return pickle.load(f)
 
 
-def deserialize_or_run(input_file: str, compute_function: Optional[Callable[[Any], Any]], param: Optional[Any] = None, write=True) -> Any:
+def deserialize_or_run(input_file: str, compute_function: Optional[Callable[[Any], Any]], *args, **kwargs) -> Any:
     """
     Try to deserialize object from ``input_file`` or get result from ``compute_function`` executed with ``param``.
 
     :param input_file: path to file name with serialized data
     :param compute_function: launch when input_file not found
-    :param param: args for compute_function
-    :param write: serialize result of compute_function to input_file file
     :return: deserialized object from input_file or result of compute_function
     """
 
@@ -186,7 +184,6 @@ def deserialize_or_run(input_file: str, compute_function: Optional[Callable[[Any
 
     if os.path.isfile(input_file):
         return deserialize(input_file)
-    d = compute_function(param)
-    if write:
-        serialize(input_file, d)
+    d = compute_function(*args, **kwargs)
+    serialize(input_file, d)
     return d
