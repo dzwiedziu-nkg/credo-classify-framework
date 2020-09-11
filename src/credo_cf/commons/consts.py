@@ -50,3 +50,8 @@ BRIGHT_PIXELS = 'bright_pixels'  # number of bright pixels (too_bright.py)
 GOOD_BRIGHT = 'good_bright'       # Image isn't too bright or too dark? True / False (too_bright.py)
 
 NOISE_THRESHOLD = 'noise_threshold'  # upper noise threshold
+CLEARLY = 'clearly'
+WHOLE_AREA = 'whole_area'
+FLOOD_AREA = 'flood_area'
+WHOLE_DIAGONAL = 'whole_diagonal'
+FLOOD_DIAGONAL = 'flood_diagonal'
