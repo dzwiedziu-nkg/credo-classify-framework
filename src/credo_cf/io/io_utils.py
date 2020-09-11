@@ -2,6 +2,7 @@ import sys
 from base64 import decodebytes, b64encode
 from pathlib import Path
 from typing import List, Optional
+import numpy as np
 
 from PIL import Image
 
@@ -42,6 +43,9 @@ def store_png(root: str, path: List[str or int], name: str or int, image: bytes 
     _image = image
     if isinstance(_image, str):
         _image = decode_base64(_image)
+
+    if isinstance(_image, np.ndarray):
+        _image = Image.fromarray(_image, 'RGB')
 
     if isinstance(_image, bytes):
         with open(fn, 'wb') as f:
