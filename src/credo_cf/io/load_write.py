@@ -1,6 +1,6 @@
 import pickle
 import sys
-from typing import List, TextIO, Callable, Optional, Tuple
+from typing import List, TextIO, Callable, Optional, Tuple, Any
 
 from json import loads
 from io import StringIO
@@ -146,7 +146,7 @@ def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int, List[s
     return ret
 
 
-def serialize(output_file: str, obj_list: List[dict]) -> None:
+def serialize(output_file: str, obj_list: Any) -> None:
     """
     Save data to binary file.
 
@@ -159,7 +159,7 @@ def serialize(output_file: str, obj_list: List[dict]) -> None:
         pickle.dump(obj_list, f)
 
 
-def deserialize(input_file: str) -> List[dict]:
+def deserialize(input_file: str) -> Any:
     """
     Load data stored by ``serialize()``.
 
@@ -169,3 +169,24 @@ def deserialize(input_file: str) -> List[dict]:
 
     with open(input_file, "rb") as f:
         return pickle.load(f)
+
+
+def deserialize_or_run(input_file: str, compute_function: Optional[Callable[[Any], Any]], param: Optional[Any] = None, write=True) -> Any:
+    """
+    Try to deserialize object from ``input_file`` or get result from ``compute_function`` executed with ``param``.
+
+    :param input_file: path to file name with serialized data
+    :param compute_function: launch when input_file not found
+    :param param: args for compute_function
+    :param write: serialize result of compute_function to input_file file
+    :return: deserialized object from input_file or result of compute_function
+    """
+
+    import os.path
+
+    if os.path.isfile(input_file):
+        return deserialize(input_file)
+    d = compute_function(param)
+    if write:
+        serialize(input_file, d)
+    return d
