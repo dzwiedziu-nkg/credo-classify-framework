@@ -132,7 +132,7 @@ def save_html_and_pngs_and_labels(dir: str, stage: int, kmeans: KMeans, data: di
         labels[label] = in_label
 
     # Save HTML for preview clusters
-    max_files_per_cluster = 75
+    max_files_per_cluster = 65
     with open('%s/%02d.html' % (dir, stage), 'wt') as html:
         html.write(html_head)
         for label in sorted(labels.keys()):
@@ -227,9 +227,9 @@ def do_compute_nth_stage(dir: str, stage: int, excludes: List[int]):
 def main():
     do_compute_first_stage('/tmp/credo', '/tmp/16.json')
     do_compute_nth_stage('/tmp/credo', 2, [2, 3, 5, 12, 13, 15, 18])
-    # do_compute_nth_stage('/tmp/credo', 3, [???])
-    # do_compute_nth_stage('/tmp/credo', 4, [???])
-    # do_compute_nth_stage('/tmp/credo', 5, [???])
+    do_compute_nth_stage('/tmp/credo', 3, [4, 8, 10, 14, 18])
+    do_compute_nth_stage('/tmp/credo', 4, [6, 11, 12, 16, 17, 19])
+    do_compute_nth_stage('/tmp/credo', 5, [2, 4, 15, 18])
 
 
 if __name__ == '__main__':
