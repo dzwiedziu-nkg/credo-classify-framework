@@ -45,7 +45,10 @@ def store_png(root: str, path: List[str or int], name: str or int, image: bytes 
         _image = decode_base64(_image)
 
     if isinstance(_image, np.ndarray):
-        _image = Image.fromarray(_image, 'RGB')
+        if len(_image.shape) == 3:
+            _image = Image.fromarray(_image, 'RGB')
+        else:
+            _image = Image.fromarray(_image, 'L')
 
     if isinstance(_image, bytes):
         with open(fn, 'wb') as f:
