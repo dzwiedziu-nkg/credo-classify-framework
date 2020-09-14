@@ -6,6 +6,10 @@ from sklearn.cluster import KMeans
 
 from credo_cf import load_json, progress_load_filter, load_image, GRAY, ID, print_log, deserialize_or_run, store_png, deserialize, serialize
 
+OUTPUT_DIR = '/tmp/credo'
+WORKING_SET = '/tmp/16.json'
+
+
 html_head = '''<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -38,16 +42,16 @@ html_foot = '''
 </html>'''
 
 
-def get_working_set_file(dir: str, stage: int):
-    return '%s/loaded-%02d.dat' % (dir, stage)
+def get_working_set_file(stage: int):
+    return '%s/loaded-%02d.dat' % (OUTPUT_DIR, stage)
 
 
-def get_kmeans_file(dir: str, stage: int):
-    return '%s/kmeans-%02d.dat' % (dir, stage)
+def get_kmeans_file(stage: int):
+    return '%s/kmeans-%02d.dat' % (OUTPUT_DIR, stage)
 
 
-def get_labels_file(dir: str, stage: int):
-    return '%s/labels-%02d.dat' % (dir, stage)
+def get_labels_file(stage: int):
+    return '%s/labels-%02d.dat' % (OUTPUT_DIR, stage)
 
 
 def load_data(fn: str):
@@ -114,8 +118,8 @@ def clustering(data: dict):
     return kmeans
 
 
-def save_html_and_pngs_and_labels(dir: str, stage: int, kmeans: KMeans, data: dict):
-    sn = get_labels_file(dir, stage)
+def save_html_and_pngs_and_labels(stage: int, kmeans: KMeans, data: dict):
+    sn = get_labels_file(stage)
     if os.path.exists(sn):
         return
 
@@ -126,14 +130,14 @@ def save_html_and_pngs_and_labels(dir: str, stage: int, kmeans: KMeans, data: di
         _id = data['id_array'][i]
         image = data['bitmap_array'][i][0]
 
-        store_png(dir, ['%02d' % stage, '%03d' % label], str(_id), image)
+        store_png(OUTPUT_DIR, ['%02d' % stage, '%03d' % label], str(_id), image)
         in_label = labels.get(label, [])
         in_label.append(_id)
         labels[label] = in_label
 
     # Save HTML for preview clusters
     max_files_per_cluster = 65
-    with open('%s/%02d.html' % (dir, stage), 'wt') as html:
+    with open('%s/%02d.html' % (OUTPUT_DIR, stage), 'wt') as html:
         html.write(html_head)
         for label in sorted(labels.keys()):
             html.write('  <tr><th>%d</th><th>%d</th><td>\n' % (label, len(labels[label])))
@@ -149,9 +153,9 @@ def save_html_and_pngs_and_labels(dir: str, stage: int, kmeans: KMeans, data: di
     serialize(sn, labels)
 
 
-def exclude_hits(dir: str, stage: int, excludes: List[int]) -> dict:
-    data = deserialize(get_working_set_file(dir, stage - 1))
-    labels = deserialize(get_labels_file(dir, stage - 1))
+def exclude_hits(stage: int, excludes: List[int]) -> dict:
+    data = deserialize(get_working_set_file(stage - 1))
+    labels = deserialize(get_labels_file(stage - 1))
 
     # prepare excluded working set
     to_exclude = set()
@@ -172,16 +176,16 @@ def exclude_hits(dir: str, stage: int, excludes: List[int]) -> dict:
     return new_data
 
 
-def do_compute(dir: str, data: dict, stage: int):
+def do_compute(data: dict, stage: int):
     # Deserialize or compute clustering ``data`` when serialized file is not exists. See: clustering
     start_time = print_log('Clustering %d stage...' % stage)
-    kmeans = deserialize_or_run(get_kmeans_file(dir, stage), clustering, data)
+    kmeans = deserialize_or_run(get_kmeans_file(stage), clustering, data)
     print_log('  ... finish', start_time)
 
-    save_html_and_pngs_and_labels(dir, stage, kmeans, data)
+    save_html_and_pngs_and_labels(stage, kmeans, data)
 
 
-def do_compute_first_stage(dir: str, fn: str):
+def do_compute_first_stage(fn: str):
     """
     Clustering first stage.
 
@@ -189,20 +193,19 @@ def do_compute_first_stage(dir: str, fn: str):
     2. Compute kmeans for stage 1.
     3. Save to PNG and html for human preview.
 
-    :param dir: path to store data
     :param fn: input working set in JSON
     """
     stage = 1
 
     # Deserialize or load from ``fn`` JSON file when serialized file is not exists. See: load_data
     start_time = print_log('Load from JSON...')
-    data = deserialize_or_run(get_working_set_file(dir, stage), load_data, fn)
+    data = deserialize_or_run(get_working_set_file(stage), load_data, fn)
     print_log('  ... finish', start_time)
 
-    do_compute(dir, data, stage)
+    do_compute(data, stage)
 
 
-def do_compute_nth_stage(dir: str, stage: int, excludes: List[int]):
+def do_compute_nth_stage(stage: int, excludes: List[int]):
     """
     Clustering nth stage.
 
@@ -211,25 +214,24 @@ def do_compute_nth_stage(dir: str, stage: int, excludes: List[int]):
     3. Save working set for current stage.
     4. Compute kmeans for current stage.
 
-    :param dir: path to store data
     :param stage: current stage of classification
     :param excludes: cut off hits from these clusters from previous stage
     """
 
     # Deserialize or load working set and labels from previous stage and Exclude hits from excluded labels when serialized file is not exists. See: exclude_hits
     start_time = print_log('Exclude hits...')
-    data = deserialize_or_run(get_working_set_file(dir, stage), exclude_hits, dir, stage, excludes)
+    data = deserialize_or_run(get_working_set_file(stage), exclude_hits, stage, excludes)
     print_log('  ... finish', start_time)
 
-    do_compute(dir, data, stage)
+    do_compute(data, stage)
 
 
 def main():
-    do_compute_first_stage('/tmp/credo', '/tmp/16.json')
-    do_compute_nth_stage('/tmp/credo', 2, [2, 3, 5, 12, 13, 15, 18])
-    do_compute_nth_stage('/tmp/credo', 3, [4, 8, 10, 14, 18])
-    do_compute_nth_stage('/tmp/credo', 4, [6, 11, 12, 16, 17, 19])
-    do_compute_nth_stage('/tmp/credo', 5, [2, 4, 15, 18])
+    do_compute_first_stage(WORKING_SET)
+    do_compute_nth_stage(2, [2, 3, 5, 12, 13, 15, 18])  # this is sample of clusters to eliminate
+    do_compute_nth_stage(3, [4, 8, 10, 14, 18])
+    do_compute_nth_stage(4, [6, 11, 12, 16, 17, 19])
+    do_compute_nth_stage(5, [2, 4, 15, 18])
 
 
 if __name__ == '__main__':
