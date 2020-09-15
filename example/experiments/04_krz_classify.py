@@ -2,6 +2,7 @@ import os
 from typing import Optional, List
 
 import numpy as np
+from skimage import draw
 from sklearn.cluster import KMeans
 
 from credo_cf import load_json, progress_load_filter, load_image, GRAY, ID, print_log, deserialize_or_run, store_png, deserialize, serialize, FRAME_CONTENT, \
@@ -34,6 +35,8 @@ th, td {
   <tr>
     <th>Cluster</th>
     <th>Count</th>
+    <th>Sum</th>
+    <th style="white-space: nowrap">Corona-like sums</th>
     <th>Sample images</th>
   </tr>
 '''
@@ -107,6 +110,7 @@ def save_html_and_pngs_and_labels(stage: int, kmeans: KMeans, data: dict):
 
     # Save PNG files in file system
     labels = {}
+    images = {}
     for i in range(0, len(kmeans.labels_)):
         label = kmeans.labels_[i]
         _id = data['id_array'][i]
@@ -118,19 +122,40 @@ def save_html_and_pngs_and_labels(stage: int, kmeans: KMeans, data: dict):
         in_label.append(_id)
         labels[label] = in_label
 
-    # make normalized sum
-    for k, a in labels.items():
-        stacked = np.vstack(a)
+        in_image = images.get(label, [])
+        in_image.append([image])
+        images[label] = in_image
+
+    # make normalized sum and corona sum
+    corona_radius = [2, 4, 8, 16]
+
+    for label, in_image in images.items():
+        stacked = np.vstack(in_image)
         summed = np.sum(stacked, 0)
 
+        m = np.amax(summed)
+        image = summed * 255 / m
+        store_png(OUTPUT_DIR, ['%02d' % stage], 'sum_%03d' % label, image.astype(np.uint8))
 
+        # corona:
+        for radius in corona_radius:
+            rr, cc = draw.disk((30, 30), radius=radius, shape=summed.shape)
+            summed[rr, cc] = 0
+
+            m = np.amax(summed)
+            image = summed * 255 / m
+            store_png(OUTPUT_DIR, ['%02d' % stage], 'sum_corona_%03d_%d' % (label, radius), image.astype(np.uint8))
 
     # Save HTML for preview clusters
-    max_files_per_cluster = 65
+    max_files_per_cluster = 66
     with open('%s/%02d.html' % (OUTPUT_DIR, stage), 'wt') as html:
         html.write(html_head)
         for label in sorted(labels.keys()):
-            html.write('  <tr><th>%d</th><th>%d</th><td>\n' % (label, len(labels[label])))
+            html.write('  <tr><th>%d</th><th>%d</th>\n' % (label, len(labels[label])))
+            html.write('<td><img src="%02d/sum_%03d.png"/></td><td>' % (stage, label))
+            for radius in corona_radius:
+                html.write('<img src="%02d/sum_corona_%03d_%d.png"/>' % (stage, label, radius))
+            html.write('</td><td>')
             used = 0
             for _id in labels[label]:
                 html.write('    <img src="images/%s/%s.png"/>\n' % (data['stored'][_id], str(_id)))
