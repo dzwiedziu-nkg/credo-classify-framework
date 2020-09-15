@@ -14,12 +14,17 @@ DEFAULT_KMEANS_CONFIG = {
 
 
 class KMeansClassify(BaseProcedure):
+    """
+    Execute KMeans clustering with arguments provided in constructor.
+    """
 
-    def __init__(self, config=None) -> None:
-        _config = {} if config is None else config
+    def __init__(self, *args, **kwargs) -> None:
+        """
+        All parameters is passed to construct KMeans object.
+        """
         self.config = {
             **DEFAULT_KMEANS_CONFIG,
-            **_config
+            **kwargs
         }
 
     def procedure(self, stack: ndarray) -> KMeans:

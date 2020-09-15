@@ -3,6 +3,12 @@ from time import time
 
 
 def print_log(content: str, timer: Optional[float] = None) -> float:
+    """
+    Print log with optionally timestamp (when timer param is not none).
+    :param content: message to print in log
+    :param timer: previous timestamp, when provided print difference of current and previous timestamp
+    :return: current timestamp
+    """
     t = time()
     if timer is not None:
         print('%s (time: %.3fs)' % (content, t - timer))
@@ -12,6 +18,15 @@ def print_log(content: str, timer: Optional[float] = None) -> float:
 
 
 def print_run_measurement(message: str, func: Callable[[Any, Any], Any], *args, **kwargs) -> Any:
+    """
+    Run func with *args and **kwars and print start and finish log with execution time measurement.
+
+    :param message: message to print before start function
+    :param func: function to execute
+    :param args: unname args for func
+    :param kwargs: named args for func
+    :return: result of func
+    """
     start_time = print_log(message + "...")
     ret = func(*args, **kwargs)
     print_log('  ... finish', start_time)
