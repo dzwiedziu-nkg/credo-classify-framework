@@ -4,10 +4,11 @@ from typing import Optional, List, Tuple
 import numpy as np
 from sklearn.cluster import KMeans
 
-from credo_cf import load_json, progress_load_filter, load_image, GRAY, ID, print_log, deserialize_or_run, store_png, deserialize, serialize
+from credo_cf import load_json, progress_load_filter, load_image, GRAY, ID, print_log, deserialize_or_run, store_png, deserialize, serialize, FRAME_CONTENT
 
 OUTPUT_DIR = '/tmp/credo'
 WORKING_SET = '/tmp/16.json'
+STORE_GRAY_CLUSTER = False
 
 
 html_head = '''<!DOCTYPE html>
@@ -67,10 +68,14 @@ def load_data(fn: str):
     """
     id_array = []
     bitmap_array = []
+    stored = {}
 
     def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
         progress_load_filter(obj, count, ret)
         load_image(obj, False)
+        st = '%03d' % ((count - 1) // 1000)
+        stored[obj[ID]] = st
+        store_png(OUTPUT_DIR, ['images', st], str(obj[ID]), obj[FRAME_CONTENT])
 
         id_array.append(obj[ID])
         bitmap_array.append([obj[GRAY]])
@@ -81,7 +86,8 @@ def load_data(fn: str):
 
     return {
         'id_array': id_array,
-        'bitmap_array': bitmap_array
+        'bitmap_array': bitmap_array,
+        'stored': stored
     }
 
 
@@ -130,10 +136,18 @@ def save_html_and_pngs_and_labels(stage: int, kmeans: KMeans, data: dict):
         _id = data['id_array'][i]
         image = data['bitmap_array'][i][0]
 
-        store_png(OUTPUT_DIR, ['%02d' % stage, '%03d' % label], str(_id), image)
+        if STORE_GRAY_CLUSTER:
+            store_png(OUTPUT_DIR, ['%02d' % stage, '%03d' % label], str(_id), image)
         in_label = labels.get(label, [])
         in_label.append(_id)
         labels[label] = in_label
+
+    # make normalized sum
+    for k, a in labels.items():
+        stacked = np.vstack(a)
+        summed = np.sum(stacked, 0)
+
+
 
     # Save HTML for preview clusters
     max_files_per_cluster = 65
@@ -143,7 +157,7 @@ def save_html_and_pngs_and_labels(stage: int, kmeans: KMeans, data: dict):
             html.write('  <tr><th>%d</th><th>%d</th><td>\n' % (label, len(labels[label])))
             used = 0
             for _id in labels[label]:
-                html.write('    <img src="%02d/%03d/%s.png"/>\n' % (stage, label, str(_id)))
+                html.write('    <img src="images/%s/%s.png"/>\n' % (data['stored'][_id], str(_id)))
                 used += 1
                 if used >= max_files_per_cluster:
                     break
@@ -164,7 +178,8 @@ def exclude_hits(stage: int, excludes: List[int]) -> dict:
 
     new_data = {
         'id_array': [],
-        'bitmap_array': []
+        'bitmap_array': [],
+        'stored': data['stored']
     }
 
     for i in range(0, len(data['id_array'])):
