@@ -1,4 +1,4 @@
-from typing import Optional, Any, Tuple
+from typing import Optional, Any, Tuple, Callable
 from time import time
 
 
@@ -9,6 +9,13 @@ def print_log(content: str, timer: Optional[float] = None) -> float:
     else:
         print(content)
     return t
+
+
+def print_run_measurement(message: str, func: Callable[[Any, Any], Any], *args, **kwargs) -> Any:
+    start_time = print_log(message + "...")
+    ret = func(*args, **kwargs)
+    print_log('  ... finish', start_time)
+    return ret
 
 
 def get_and_set(obj: dict, key: Any, default: Any) -> Any:
