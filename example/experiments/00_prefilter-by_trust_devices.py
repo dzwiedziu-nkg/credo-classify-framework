@@ -30,14 +30,15 @@ from typing import Optional, List
 from PIL import Image
 from pytz import utc
 
-from credo_cf import load_json, ID, FRAME_CONTENT, X, Y, DEVICE_ID, IMAGE, decode_base64, store_png, TIMESTAMP
+from credo_cf import load_json, ID, FRAME_CONTENT, X, Y, DEVICE_ID, IMAGE, decode_base64, store_png, TIMESTAMP, group_by_device_id, group_by_resolution, \
+    group_by_timestamp_division, encode_base64
 
 INPUT_DIR = '/tmp/credo/source'
 PASSED_DIR = '/tmp/credo/passed'
 OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
 ERROR_DIR = '/tmp/credo/error'
-DEBUG = False
+DEBUG = True
 DEBUG_DIR = '/tmp/credo/debug'
 
 INCLUDE_DEVICE_IDs = {7044, 7045, 7046, 7047, 7048, 7050, 7569, 7571, 7600, 7752, 7927, 7928, 7968, 8237, 8257, 8258, 8259, 8260, 8288, 8289, 8327}
@@ -57,6 +58,61 @@ def store_png_for_debug(detections: List[dict], subdirs: List[str]):
         for d in detections:
             store_png(DEBUG_DIR, subdirs, str(d.get(ID)), d.get(FRAME_CONTENT))
             store_png(DEBUG_DIR, [*subdirs, d.get(DEVICE_ID)], str(d.get(ID)), d.get(FRAME_CONTENT))
+
+
+def start_analyze(all_detections, log_prefix):
+    print('%s  group by devices...' % log_prefix)
+    by_devices = group_by_device_id(all_detections)
+    print('%s  ... done' % log_prefix)
+
+    dev_no = 0
+    dev_count = len(by_devices.keys())
+
+    for device_id, device_detections in by_devices.items():
+        by_resolution = group_by_resolution(device_detections)
+        for resolution, detections in by_resolution.items():
+            dev_no += 1
+            print('%s    start device %d of %d, device id: %s, resolution: %dx%d, detections count: %d' % (log_prefix, dev_no, dev_count, str(device_id), resolution[0], resolution[1], len(detections)))
+
+            # try to merge hits on the same frame
+            by_frame = group_by_timestamp_division(detections)
+            reconstructed = 0
+            for timestmp, in_frame in by_frame.items():
+                if len(in_frame) <= 1:
+                    continue
+
+                image = Image.new('RGBA', (resolution[0], resolution[1]), (0, 0, 0))
+
+                for d in reversed(in_frame):
+                    cx = d.get(X) - 30
+                    cy = d.get(Y) - 30
+                    w, h = (60, 60)
+
+                    if DEBUG:
+                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'before'], str(d.get(ID)), d.get(FRAME_CONTENT))
+
+                    image.paste(d.get(IMAGE), (cx, cy, cx + w, cy + h))
+
+                    # fix bug in early CREDO Detector App: black filled boundary 1px too large
+                    image.paste(image.crop((cx + w - 1, cy, cx + w, cy + h)), (cx + w, cy, cx + w + 1, cy + h))
+                    image.paste(image.crop((cx, cy + h - 1, cx + w, cy + h)), (cx, cy + h, cx + w, cy + h + 1))
+                    image.paste(image.crop((cx + w - 1, cy + h - 1, cx + w, cy + h)), (cx + w, cy + h, cx + w + 1, cy + h + 1))
+
+                for d in in_frame:
+                    cx = d.get(X) - 30
+                    cy = d.get(Y) - 30
+                    w, h = (60, 60)
+
+                    hit_img = image.crop((cx, cy, cx + w, cy + h))
+                    with BytesIO() as output:
+                        hit_img.save(output, format="png")
+                        d[FRAME_CONTENT] = encode_base64(output.getvalue())
+                    if DEBUG:
+                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'after'], str(d.get(ID)), d.get(FRAME_CONTENT))
+                reconstructed += 1
+                if DEBUG:
+                    store_png(DEBUG_DIR, ['reconstruct', str(device_id)], str(timestmp), image)
+            print('%s    ... reconstructed frames: %d' % (log_prefix, reconstructed))
 
 
 def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
@@ -80,6 +136,7 @@ def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
         frame_decoded = decode_base64(obj.get(FRAME_CONTENT))
         pil = Image.open(BytesIO(frame_decoded))
         if pil.size == (60, 60):
+            obj[IMAGE] = pil
             return True
 
     except Exception as e:
@@ -104,6 +161,12 @@ def run_file(fn):
             lp += 1
             with open('%s/%s-%06d.txt' % (ERROR_DIR, fn_name, lp), 'w') as f:
                 f.write(error)
+
+    start_analyze(detections, log_prefix)
+
+    for d in detections:
+        if IMAGE in d.keys():
+            del d[IMAGE]
 
     # load again and save as
     fn_out = '%s/%s' % (OUTPUT_DIR, fn_name)
