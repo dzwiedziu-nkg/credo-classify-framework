@@ -37,7 +37,7 @@ PASSED_DIR = '/tmp/credo/passed'
 OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
 ERROR_DIR = '/tmp/credo/error'
-DEBUG = True
+DEBUG = False
 DEBUG_DIR = '/tmp/credo/debug'
 
 INCLUDE_DEVICE_IDs = {7044, 7045, 7046, 7047, 7048, 7050, 7569, 7571, 7600, 7752, 7927, 7928, 7968, 8237, 8257, 8258, 8259, 8260, 8288, 8289, 8327}
