@@ -1,4 +1,4 @@
-from typing import Optional, Any, Tuple, Callable
+from typing import Optional, Any, Tuple, Callable, List
 from time import time
 
 
@@ -45,6 +45,21 @@ def get_and_set(obj: dict, key: Any, default: Any) -> Any:
     """
     o = obj.get(key, default)
     obj[key] = o if o is not None else default
+    return o
+
+
+def append_to_array(obj: dict, key: str, value: Any) -> List[Any]:
+    """
+    Append to array in key. When key is empty, array will be created.
+
+    :param obj: dict object, key may be added or modified
+    :param key: key name
+    :param value: value will be add to array in key or one-value array will be created
+    :return: array from key
+    """
+    o = obj.get(key, [])
+    o.append(value)
+    obj[key] = o
     return o
 
 
