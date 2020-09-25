@@ -22,7 +22,7 @@ def download_working_set(url: str) -> Tuple[List[dict], int]:
     json_content = bz2.decompress(data).decode("utf-8")
 
     print('Prase JSON...')
-    objs, count = load_json_from_stream(io.StringIO(json_content), progress_and_process_image)
+    objs, count, errors = load_json_from_stream(io.StringIO(json_content), progress_and_process_image)
     print('Parsed %d, skipped %d' % (count, count - len(objs)))
     return objs, count
 
