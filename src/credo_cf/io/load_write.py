@@ -174,7 +174,7 @@ def save_json(detections: List[dict], output_file: str = '-', *args, **kwargs):
     :param kwargs: unnamed args redirected to json.dump except ``fp``
     :return: None
     """
-    f = sys.stdin if output_file == '-' else open(output_file, 'w')
+    f = sys.stdout if output_file == '-' else open(output_file, 'w')
     save_json_to_stream(detections, f, *args, **kwargs)
     if output_file != '-':
         f.close()
