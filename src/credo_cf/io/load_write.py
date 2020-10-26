@@ -1,3 +1,4 @@
+import json
 import pickle
 import sys
 from typing import List, TextIO, Callable, Optional, Tuple, Any
@@ -144,6 +145,39 @@ def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int, List[s
     if input_file != '-':
         inp.close()
     return ret
+
+
+def save_json_to_stream(detections: List[dict], *args, **kwargs):
+    """
+    Write detections list to JSON file.
+
+    :param detections: hits to save in JSON file
+    :param args: unnamed args redirected to json.dump
+    :param kwargs: name args redirected to json.dump
+    """
+    json.dump({'detections': detections}, *args, **kwargs)
+
+
+def save_json(detections: List[dict], output_file: str = '-', *args, **kwargs):
+    """
+    Wrapper on ``save_json_to_stream``.
+
+    When ``output_file`` is the ``"-"`` string then output will be write to ``stdout``.
+    Otherwise the file will be open as output text stream.
+
+    Examples::
+      save_json('/tmp/output.json', detections, ident=2)
+
+    :param output_file: path to output JSON file or "-" for stdout.
+    :param detections: hits to save in JSON
+    :param args: unnamed args redirected to json.dump except second arg
+    :param kwargs: unnamed args redirected to json.dump except ``fp``
+    :return: None
+    """
+    f = sys.stdin if output_file == '-' else open(output_file, 'w')
+    save_json_to_stream(detections, f, *args, **kwargs)
+    if output_file != '-':
+        f.close()
 
 
 def serialize(output_file: str, obj_list: Any) -> None:
