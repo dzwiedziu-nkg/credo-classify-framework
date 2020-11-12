@@ -5,6 +5,15 @@ from numpy import ndarray
 from credo_cf.classification.clustering.base_procedure import BaseProcedure
 
 
+class FlatPreprocess(BaseProcedure):
+    """
+    Sort values in stack.
+    """
+
+    def procedure(self, stacked: ndarray):
+        return stacked.reshape(len(stacked), -1)
+
+
 class SortedPreprocess(BaseProcedure):
     """
     Sort values in stack.

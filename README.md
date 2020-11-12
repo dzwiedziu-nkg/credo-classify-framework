@@ -44,6 +44,10 @@ pip install jupyterlab
 
 # Install credo_cf package
 pip install git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git
+
+## or for use specific branch i.e. 'slawek'
+# pip install git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git@slawek
+
 ## for upgrade just installed package:
 # pip install --upgrade git+https://github.com/dzwiedziu-nkg/credo-classify-framework.git
 
@@ -59,6 +63,9 @@ wget -O- http://mars.iti.pk.edu.pl/~nkg/export_1585398647736_1585402962221.json.
 
 # Download big example (80K images)
 wget -O- wget http://mars.iti.pk.edu.pl/~nkg/export_1584805204914_1585394157807.json.bz2 | bzip2 -dc > big_example.json
+
+# Download our working set (62K images)
+wget -O- wget http://mars.iti.pk.edu.pl/~nkg/credo/working_set.json.bz2 | bzip2 -dc > working_set.json
 ```
 
 The `export_*.json` files is a output files from [CREDO API Tools](https://github.com/credo-science/credo-api-tools).

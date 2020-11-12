@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, Callable, Optional, Tuple
 
-from credo_cf.commons.consts import DEVICE_ID, TIMESTAMP, CLASSIFIED, CLASS_ARTIFACT
+from credo_cf.commons.consts import DEVICE_ID, TIMESTAMP, CLASSIFIED, CLASS_ARTIFACT, ID
 from credo_cf.commons.utils import get_and_set, get_resolution_key
 
 
@@ -53,6 +53,17 @@ def exclude_artifacts(detection: dict):
     :return: detection['classified'] == 'artifact'
     """
     return detection.get(CLASSIFIED) == CLASS_ARTIFACT
+
+
+def group_by_id(detections: List[dict]) -> Dict[int, List[dict]]:
+    """
+    Group detections by device_id field. The key of group is ``id``.
+
+    Note: it is wrapper on ``group_by_lambda()``.
+    :param detections: list of detections
+    :return: detections grouped by id
+    """
+    return group_by_lambda(detections, lambda x, y: x.get(ID))
 
 
 def group_by_device_id(detections: List[dict]) -> Dict[int, List[dict]]:
