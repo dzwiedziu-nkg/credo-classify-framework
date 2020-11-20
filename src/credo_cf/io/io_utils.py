@@ -48,7 +48,8 @@ def store_png(root: str, path: List[str or int], name: str or int, image: bytes 
         if len(_image.shape) == 3:
             _image = Image.fromarray(_image, 'RGB')
         else:
-            _image = Image.fromarray(_image, 'L')
+            l = _image.astype(np.uint8)
+            _image = Image.fromarray(l, 'L')
 
     if isinstance(_image, bytes):
         with open(fn, 'wb') as f:
