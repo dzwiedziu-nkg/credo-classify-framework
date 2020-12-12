@@ -1,14 +1,17 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union, Callable
 
 import math
 import itertools
 
 import numpy as np
 from numpy import unravel_index
+from scipy.interpolate import interp2d
 from scipy.sparse.dok import dok_matrix
 from scipy.sparse.csgraph import dijkstra
+from skimage.morphology import medial_axis, skeletonize
 
-from credo_cf.commons.consts import GRAY, NKG_MASK, NKG_CORES, NKG_PATH, NKG_DERIVATIVE, NKG_DIRECTION, NKG_VALUES
+from credo_cf.commons.consts import GRAY, NKG_MASK, NKG_CORES, NKG_PATH, NKG_DERIVATIVE, NKG_DIRECTION, NKG_VALUES, NKG_THRESHOLD, NKG_UPSCALE, \
+    NKG_UPSCALE_MASK, NKG_SKELETON
 
 KERNEL_HV = [
     (-1, 0),
@@ -120,19 +123,52 @@ def find_all_maximums(img: np.ndarray, max_maximums: int = 100, recursion_func=N
     return {'cores': cores, 'values': values, 'mask': mask}
 
 
-def nkg_mark_hit_area(detection: dict, recursion_func=None, kernel: List[Tuple[int, int]] = None):
+def nkg_mark_hit_area(detection: dict, recursion_func=None, kernel: List[Tuple[int, int]] = None, mask_method: Union[str, Callable[[List[int]], np.ndarray]] = 'derivate'):
     ret = find_all_maximums(detection.get(GRAY), recursion_func=recursion_func, kernel=kernel, spread_on_flat=False)
 
     find_median = ret['values']
 
-    core_median = find_median[len(find_median) // 2]
-    # threshold = (find_median[0] - core_median) // 10 + core_median
-    threshold = core_median + 5
+    if mask_method in ['derivate', 'derivate2']:
+        fm = list(reversed(find_median))
+        derivates = []
+        for i in range(1, len(fm)):
+            derivates.append(fm[i] - fm[i-1])
+
+        derivates2 = []
+        for i in range(1, len(derivates)):
+            derivates2.append(int(derivates[i]) - int(derivates[i-1]))
+
+        for i in range(0, len(derivates)):
+            if derivates[i] > 2:
+                threshold = fm[i] + 1
+                break
+
+        # row1 = []
+        # row2 = ['----']
+        # row3 = ['----', '----']
+        # for d in fm:
+        #     row1.append('%4d' % d)
+        # for d in derivates:
+        #     row2.append('%4d' % d)
+        # for d in derivates2:
+        #     row3.append('%4d' % d)
+        #
+        # print(', '.join(row1))
+        # print(', '.join(row2))
+        # print(', '.join(row3))
+    elif mask_method == 'median':
+        core_median = find_median[len(find_median) // 2]
+        # threshold = (find_median[0] - core_median) // 10 + core_median
+        threshold = core_median + 5
+
+    # print(threshold)
+    # print('-----')
 
     ret2 = find_all_maximums(detection.get(GRAY), recursion_func=recursion_func, kernel=kernel, spread_on_flat=True, threshold=threshold)
-    detection[NKG_MASK] = ret2['mask']
+    detection[NKG_MASK] = np.where(ret2['mask'] > 0, 1, 0)
     detection[NKG_VALUES] = ret2['values']
     detection[NKG_CORES] = ret2['cores']
+    detection[NKG_THRESHOLD] = threshold
 
     return detection
 
@@ -148,10 +184,10 @@ def to_coordinates(img, index):
 
 
 # make path by dijkstry
-def bitmap_to_graph(img, mask):
+def bitmap_to_graph(img, mask, y=0, p=16.0):
     # graph = csr_matrix(img)
     am_ind = unravel_index(img.argmax(), img.shape)
-    am = img[am_ind]
+    am = img[am_ind] + y
 
     # A sparse adjacency matrix.
     # Two pixels are adjacent in the graph if both are painted.
@@ -169,35 +205,104 @@ def bitmap_to_graph(img, mask):
                 pix2 = img[i + y_diff, j + x_diff]
                 if not mask[i + y_diff, j + x_diff]:
                     continue
-                adjacency[to_index(img, i, j), to_index(img, i + y_diff, j + x_diff)] = float(am * 2 - pix1 - pix2)**16 + 1  #abs(int(pix2) - int(pix1))*2 + 1
+                weight = float(am * 2 - pix1 - pix2)**p + 1  # abs(int(pix2) - int(pix1))*2 + 1
+                adjacency[to_index(img, i, j), to_index(img, i + y_diff, j + x_diff)] = weight
     return adjacency
 
 
-def search_path_dijkstra(img, adjacency, src, dst):
+def search_path_dijkstra(img, adjacency, src, dst) -> dict:
     # We chose two arbitrary points, which we know are connected
     source = to_index(img, *src)
     target = to_index(img, *dst)
 
     # Compute the shortest path between the source and all other points in the image
-    _, predecessors = dijkstra(adjacency, directed=True, indices=[source],
-                               unweighted=False, return_predecessors=True)
+    _, predecessors = dijkstra(adjacency, directed=True, indices=[source], unweighted=False, return_predecessors=True)
 
     # Constructs the path between source and target
     pixel_index = target
     pixels_path = []
     if math.isinf(_[0][target]):
-        return {'dist': math.inf }
+        return {'dist': math.inf, 'path': []}
     # print('source: ' + str(_[0][source]**(1.0/16.0)))
     # print('target: ' + str(_[0][target]**(1.0/16.0)))
-    i = 0
+    #i = 0
     #pixels_path.append(target)
     while pixel_index != source:
-        i += 1
         pixels_path.append(pixel_index)
         pixel_index = predecessors[0, pixel_index]
+        #i += 1
         # print(str(i) + '.: ' + str(_[0][pixel_index]**(1.0/16.0)))
     pixels_path.append(source)
     return {'dist': _[0][target]**(1.0/16.0), 'path': pixels_path}
+
+
+def search_longest_path_dijkstra(img, mask, src, y=1000, p=0.0625, adjacency=None) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+    _adjacency = adjacency if adjacency is not None else bitmap_to_graph(img, mask, y, p)
+
+    # We chose two arbitrary points, which we know are connected
+    source = to_index(img, *src)
+
+    # Compute the shortest path between the source and all other points in the image
+    distances, predecessors = dijkstra(_adjacency, directed=True, indices=[source], unweighted=False, return_predecessors=True)
+
+    distances2 = distances.reshape(img.shape)
+    distances2[distances2 == np.inf] = 0
+    farest = unravel_index(distances2.argmax(), distances2.shape)
+
+    source = to_index(img, *farest)
+    _, predecessors = dijkstra(_adjacency, directed=True, indices=[source], unweighted=False, return_predecessors=True)
+
+    _2 = _.reshape(img.shape)
+    _2[_2 == np.inf] = 0
+    farest2 = unravel_index(_2.argmax(), _2.shape)
+
+    return farest, farest2
+
+
+def upscale_image(img: np.ndarray, scale=10, kind='linear') -> np.ndarray:
+    xrange = lambda x: np.linspace(0, 1, x)
+    fimg = interp2d(xrange(img.shape[0]), xrange(img.shape[1]), img, kind=kind)
+    img = fimg(xrange(img.shape[0]*scale), xrange(img.shape[0]*scale))
+    return img
+
+
+def do_skeletons(img: np.ndarray, method='medial_axis') -> np.ndarray:
+    if method == 'medial_axis':
+        skel, distance = medial_axis(img, return_distance=True)
+        return skel
+    elif method == 'zhang':
+        return skeletonize(np.where(img > 0, 1, 0), method='zhang')
+    elif method == 'lee':
+        return skeletonize(np.where(img > 0, 1, 0), method='lee')
+
+
+def find_start_stop_point(img: np.ndarray, mask: np.ndarray, skeleton: np.ndarray) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+
+    ms = mask * skeleton
+    adjacency = bitmap_to_graph(img, ms, p=1)
+
+    paths = img * ms
+    start = unravel_index(paths.argmax(), paths.shape)
+    return search_longest_path_dijkstra(img, ms, start, adjacency=adjacency)
+
+
+def rescale_path(path: List[Tuple[int, int]], scale: float,  do_round=False) -> List[Tuple[float, float]]:
+    path2 = []
+    for p in path:
+        np = p[0] * scale, p[1] * scale
+        if do_round:
+            np = round(np[0]), round(np[1])
+        if np not in path2:
+            path2.append(np)
+    return path2
+
+
+def unravel_path(path: List[int], shape) -> List[Tuple[int, int]]:
+    unraveled = []
+    for v in path:
+        u = unravel_index(v, shape)
+        unraveled.append(u)
+    return unraveled
 
 
 def unraveled_to_alphabet(unraveled):
@@ -227,40 +332,68 @@ def unraveled_to_alphabet2(unraveled):
     return ret
 
 
-def nkg_make_track(detection: dict):
+def nkg_make_track(detection: dict, scale=1, downscale='round', upscale_kind='linear', skeleton_method='medial_axis'):
     img = detection.get(GRAY)
-
     mask = detection.get(NKG_MASK)
-    found_cores = detection.get(NKG_CORES)
 
+    if scale != 1:
+        img = upscale_image(img, scale=scale, kind=upscale_kind)
+        mask = np.where(img > detection.get(NKG_THRESHOLD), 1, 0)
+    detection[NKG_UPSCALE] = img
+    detection[NKG_UPSCALE_MASK] = mask
+
+    skeleton = do_skeletons(img*mask, method=skeleton_method)
+    detection[NKG_SKELETON] = skeleton
+
+    start, strop = find_start_stop_point(img, mask, skeleton)
     adjacency = bitmap_to_graph(img, mask)
+    ret = search_path_dijkstra(img, adjacency, start, strop)
+    path = unravel_path(ret['path'], img.shape)
+    if scale != 1 and downscale:
+        path = rescale_path(path, 1.0/scale, downscale == 'round')
 
-    pairs = itertools.combinations(found_cores, 2)
-    dists = []
-    for p in pairs:
-        c1 = p[0]
-        c2 = p[1]
+    alphabeted = unraveled_to_alphabet(path)
+    alphabeted2 = unraveled_to_alphabet2(path)
 
-        p = search_path_dijkstra(img, adjacency, c1, c2)
-        dist = p['dist']
-        if not math.isinf(dist):
-            dists.append({'pair': p, 'c1': c1, 'c2': c2, 'dist': dist, 'path': p['path']})
-
-    if len(dists) == 0:
-        return
-
-    # get longest path
-    max_dist = sorted(dists, key=lambda x: len(x['path']), reverse=True)[0]
-    unraveled = []
-    for v in max_dist['path']:
-        u = unravel_index(v, img.shape)
-        unraveled.append(u)
-
-    alphabeted = unraveled_to_alphabet(unraveled)
-    alphabeted2 = unraveled_to_alphabet2(unraveled)
-
-    detection[NKG_PATH] = unraveled
+    detection[NKG_PATH] = path
     detection[NKG_DIRECTION] = alphabeted
     detection[NKG_DERIVATIVE] = alphabeted2
 
     return detection
+
+
+def angle_3points(a, b, c):
+    a = np.array(list(a))
+    b = np.array(list(b))
+    c = np.array(list(c))
+
+    ba = a - b
+    bc = c - b
+
+    cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+    angle = np.arccos(cosine_angle)
+    return angle
+
+
+def analyse_path(path: List[Tuple[float, float]], cut_first=1, cut_latest=1, divide=3) -> List[float]:
+    if len(path) - cut_first - cut_latest < divide:
+        return []
+
+    new_path = path[cut_first:len(path)-cut_latest]
+    step = len(new_path) // (divide - 1)
+
+    points = []
+    for i in range(0, divide):
+        if i == divide - 1:
+            points.append(new_path[-1])
+        else:
+            points.append(new_path[i*step])
+
+    ret = []
+
+    for i in range(2, divide):
+        angle = angle_3points(points[i-2], points[i-1], points[i]) / math.pi * 180.0
+        if angle > 180:
+            angle -= 360
+        ret.append(angle)
+    return ret
