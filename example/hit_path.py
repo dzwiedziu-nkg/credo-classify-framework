@@ -2,15 +2,17 @@ import math
 
 from scipy.interpolate import interp2d
 from scipy.ndimage import rotate, center_of_mass
+from scipy.spatial import distance
 from skimage.feature import canny
 from skimage.filters import rank, gaussian
 from skimage.measure import subdivide_polygon
 from skimage.morphology import medial_axis, square, erosion, disk
 from skimage.segmentation import active_contour
 from skimage.transform import probabilistic_hough_line, rescale
+from sklearn.linear_model import LinearRegression
 
 from credo_cf import load_json, progress_and_process_image, group_by_id, GRAY, nkg_mark_hit_area, NKG_MASK, nkg_make_track, NKG_PATH, NKG_DIRECTION, \
-    NKG_DERIVATIVE, ID, NKG_THRESHOLD, NKG_UPSCALE, NKG_SKELETON
+    NKG_DERIVATIVE, ID, NKG_THRESHOLD, NKG_UPSCALE, NKG_SKELETON, point_to_point_distance, center_of_points
 import matplotlib.pyplot as plt
 from numpy import unravel_index, ma
 import numpy as np
@@ -57,11 +59,13 @@ def display_all(values):
     plt.show()
 
 
-def display_all_from(hits, _from):
+def display_all_from(hits, _from, title_func=None):
     f, axs = plt.subplots(4, 5, constrained_layout=True, figsize=(32, 24))
     i = 0
     for ax in axs.flat:
         im = ax.matshow(hits[i].get(_from))
+        if title_func is not None:
+            ax.title.set_text(title_func(hits[i]))
         i += 1
     # f.colorbar(im, ax=axs.flat)
     plt.show()
@@ -323,9 +327,34 @@ def path_to_center_of_weight(img, fm, path):
         new_i = center_of_mass(m)
         path2.append([new_i[0] + x1, new_i[1] + y1])
 
+    path2 = optimize_path(path2, 0.5)
     path2 = np.array(path2)
 
-    return subdivide_polygon(path2)
+    # if path2.shape[0] > 1:
+    #     return subdivide_polygon(path2)
+    return path2
+
+
+def optimize_path(path, max_distance, max_passes=20):
+    working = path
+    for i in range(0, max_passes):
+        used = False
+        path2 = [working[0]]
+        for pos in range(1, len(working)):
+            dist = point_to_point_distance(working[pos - 1], working[pos])
+            if dist <= max_distance:
+                new_point = center_of_points([working[pos - 1], working[pos]])
+                if path2[-1][0] == working[pos - 1][0] and path2[-1][1] == working[pos - 1][1]:
+                    path2[-1] = new_point
+                else:
+                    path2.append(new_point)
+                used = True
+            else:
+                path2.append(working[pos])
+        working = path2
+        if not used:
+            break
+    return working
 
 
 ray_way = build_ray_way(ray_way_octet)
@@ -355,8 +384,11 @@ for h in hits:
 
     snake = path_to_center_of_weight(h.get(GRAY), fit_mask, path)
 
-    # snake = active_contour(masked, init, boundary_condition='fixed',
-    #                       alpha=0.1, beta=1.0, w_line=-5, w_edge=0, gamma=0.1)
+    X = snake[:,0].reshape(-1, 1)
+    y = snake[:,1].reshape(-1, 1)
+    reg = LinearRegression().fit(X, y)
+    score = reg.score(X, y)
+    h['score'] = score
 
     img = rescale(h.get(GRAY), 8, order=0, preserve_range=True, anti_aliasing=False)
     mask = np.zeros(img.shape)
@@ -364,4 +396,4 @@ for h in hits:
 
 
 display_all_from(hits, 'masked')
-display_all_from(hits, 'masked2')
+display_all_from(hits, 'masked2', lambda x:str(x['score']))

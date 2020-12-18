@@ -3,4 +3,4 @@ from credo_cf.commons.grouping import group_by_lambda, get_and_set, group_by_dev
 from credo_cf.commons.consts import *
 from credo_cf.commons.filters import *
 from credo_cf.commons.utils import print_log, print_run_measurement, get_and_set, get_and_add, join_tuple, get_resolution_key, get_xy_key,\
-    point_to_point_distance, append_to_array
+    point_to_point_distance, append_to_array, center_of_points

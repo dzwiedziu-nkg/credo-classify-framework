@@ -1,6 +1,8 @@
 from typing import Optional, Any, Tuple, Callable, List
 from time import time
 
+import numpy as np
+
 
 def print_log(content: str, timer: Optional[float] = None) -> float:
     """
@@ -93,3 +95,7 @@ def get_xy_key(d: dict) -> Tuple[int, int]:
 
 def point_to_point_distance(p1: Tuple[int, int], p2: Tuple[int, int]):
     return ((p2[0] - p1[0])**2 + (p2[1] - p1[1])**2)**0.5
+
+
+def center_of_points(ps: List[Tuple[int, int]]):
+    return np.average(np.array(ps), axis=0)
