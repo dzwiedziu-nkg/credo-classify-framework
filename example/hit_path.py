@@ -1,4 +1,5 @@
 import math
+import sys
 
 from scipy.interpolate import interp2d
 from scipy.ndimage import rotate, center_of_mass
@@ -12,7 +13,8 @@ from skimage.transform import probabilistic_hough_line, rescale
 from sklearn.linear_model import LinearRegression
 
 from credo_cf import load_json, progress_and_process_image, group_by_id, GRAY, nkg_mark_hit_area, NKG_MASK, nkg_make_track, NKG_PATH, NKG_DIRECTION, \
-    NKG_DERIVATIVE, ID, NKG_THRESHOLD, NKG_UPSCALE, NKG_SKELETON, point_to_point_distance, center_of_points
+    NKG_DERIVATIVE, ID, NKG_THRESHOLD, NKG_UPSCALE, NKG_SKELETON, point_to_point_distance, center_of_points, NKG_MASKED, NKG_REGRESSION, NKG_PATH_FIT, \
+    store_png, IMAGE
 import matplotlib.pyplot as plt
 from numpy import unravel_index, ma
 import numpy as np
@@ -33,6 +35,13 @@ used_hits2 = [7741225, 7238971, 5973441, 4892405, 17432760,
              17432645, 4731298, 6229582, 17571002, 17368987,
              7148947, 4899235, 18349704, 18250739, 6908292,
              9129139, 17771578, 17861029, 17337669, 7470695]
+
+used_hits2 = [7741225, 7238971, 5973441, 4892405, 17432760,
+             17432645, 4731298, 6229582, 7470695, 17368987,
+             7148947, 4899235, 18349704, 18250739, 6908292,
+             9129139, 17771578, 17861029, 17337669, 17571002]
+
+used_hits2 = reversed(used_hits2)
 
 used_hits = used_hits2
 
@@ -59,8 +68,8 @@ def display_all(values):
     plt.show()
 
 
-def display_all_from(hits, _from, title_func=None):
-    f, axs = plt.subplots(4, 5, constrained_layout=True, figsize=(32, 24))
+def display_all_from(hits, _from, title_func=None, scale=3):
+    f, axs = plt.subplots(4, 5, constrained_layout=True, figsize=(4*scale, 3*scale))
     i = 0
     for ax in axs.flat:
         im = ax.matshow(hits[i].get(_from))
@@ -238,55 +247,45 @@ def in_angle(a, b, v):
         return not (pa >= pv >= pb)
 
 
+def nkg_pather_step(img, next_pos, angle, threshold, fov, step):
+    path = []
+    while img[next_pos] > threshold:
+        path.append(next_pos)
+        img[next_pos] = 0
+
+        try:
+            calc = calc_ways(img, next_pos, ray_way)
+        except:
+            # edge achieved
+            break
+
+        filtered = list(filter(lambda x: in_angle(angle - fov / 2, angle + fov / 2, x['angle']) and img[calc_pos(next_pos, way_next_point(x['way'], step))] > threshold, calc))
+        if len(filtered) == 0:
+            break
+        direction = max(filtered, key=lambda x: x['value'])
+        next_pos = calc_pos(next_pos, way_next_point(direction['way'], step))
+        angle = direction['angle']
+    return path
+
+
 def nkg_pather(img, threshold, fov=90, step=1):
     # mask = np.zeros(img.shape)
     img = img.copy()
     start = unravel_index(img.argmax(), img.shape)
-    calc = calc_ways(h['smooth'], start, ray_way)
+    try:
+        calc = calc_ways(h['smooth'], start, ray_way)
+    except:
+        return np.array([])
     direction = max(calc, key=lambda x: x['value'])
     next_pos = calc_pos(start, way_next_point(direction['way'], step))
 
     angle = direction['angle']
     next_angle = direction['angle'] - 180
-    # img[start] = 0
-    path = []
+    path = nkg_pather_step(img, next_pos, angle, threshold, fov, step)
 
-    while img[next_pos] > threshold:
-        c1 = next_pos
-        path.append(next_pos)
-        # mask[next_pos] = 1
-        img[next_pos] = 0
-
-        try:
-            calc = calc_ways(img, next_pos, ray_way)
-        except:
-            # edge achieved
-            break
-
-        filtered = list(filter(lambda x: in_angle(angle - fov / 2, angle + fov / 2, x['angle']), calc))
-        direction = max(filtered, key=lambda x: x['value'])
-        next_pos = calc_pos(next_pos, way_next_point(direction['way'], step))
-        angle = direction['angle']
-
-    path2 = []
     angle = next_angle
     next_pos = start
-    while img[next_pos] > threshold:
-        path2.append(next_pos)
-        c2 = next_pos
-        # mask[next_pos] = 1
-        img[next_pos] = 0
-
-        try:
-            calc = calc_ways(img, next_pos, ray_way)
-        except:
-            # edge achieved
-            break
-
-        filtered = list(filter(lambda x: in_angle(angle - fov / 2, angle + fov / 2, x['angle']), calc))
-        direction = max(filtered, key=lambda x: x['value'])
-        next_pos = calc_pos(next_pos, way_next_point(direction['way'], step))
-        angle = direction['angle']
+    path2 = nkg_pather_step(img, next_pos, angle, threshold, fov, step)
 
     return np.array([*reversed(path2), *path])
 
@@ -357,6 +356,27 @@ def optimize_path(path, max_distance, max_passes=20):
     return working
 
 
+def nkg_path_analysis(detection: dict, fov=90, step=1):
+    h = detection
+    path = nkg_pather(h.get(GRAY), h.get(NKG_THRESHOLD), 90, 1)
+    h[NKG_PATH] = path
+    h[NKG_MASKED] = line_to_mask(h.get(GRAY), path, create_new_mask=True)
+
+    path_fit = path_to_center_of_weight(h.get(GRAY), fit_mask, path) if len(path) else []
+    h[NKG_PATH_FIT] = path_fit
+
+    if len(path_fit) == 0:
+        h[NKG_REGRESSION] = 0
+        return h
+
+    X = path_fit[:,0].reshape(-1, 1)
+    y = path_fit[:,1].reshape(-1, 1)
+    reg = LinearRegression().fit(X, y)
+    score = reg.score(X, y)
+    h[NKG_REGRESSION] = score
+    return h
+
+
 ray_way = build_ray_way(ray_way_octet)
 www = way_next_point(ray_way[0]['way'])
 
@@ -378,22 +398,35 @@ display_all_from(hits, 'smooth')
 
 
 for h in hits:
-
-    path = nkg_pather(h.get(GRAY), h.get(NKG_THRESHOLD))
-    h['masked'] = line_to_mask(h.get(GRAY), path, create_new_mask=True)
-
-    snake = path_to_center_of_weight(h.get(GRAY), fit_mask, path)
-
-    X = snake[:,0].reshape(-1, 1)
-    y = snake[:,1].reshape(-1, 1)
-    reg = LinearRegression().fit(X, y)
-    score = reg.score(X, y)
-    h['score'] = score
+    nkg_path_analysis(h)
+    h['masked'] = line_to_mask(h.get(GRAY), h[NKG_PATH], create_new_mask=True)
+    h['score'] = '%s: %0.3f/%d' % (str(h.get(ID)), h[NKG_REGRESSION], len(h[NKG_PATH_FIT]))
 
     img = rescale(h.get(GRAY), 8, order=0, preserve_range=True, anti_aliasing=False)
     mask = np.zeros(img.shape)
-    h['masked2'] = line_to_mask(img, snake, scale=8, create_new_mask=True)
+    h['masked2'] = line_to_mask(img, h.get(NKG_PATH_FIT), scale=8, create_new_mask=True)
 
 
-display_all_from(hits, 'masked')
-display_all_from(hits, 'masked2', lambda x:str(x['score']))
+display_all_from(hits, 'masked', lambda x:str(x['score']))
+display_all_from(hits, 'masked2', lambda x:str(x['score']), scale=10)
+
+# def measure_angle(fn: str):
+#     hits, count, errors = load_json('../data/%s' % fn, progress_and_process_image)
+#     for h in hits:
+#         nkg_mark_hit_area(h)
+#         nkg_path_analysis(h)
+#
+#         store_png('/tmp/credo', [fn], '%0.3f_%s' % (h.get(NKG_REGRESSION), str(h.get(ID))), h.get(IMAGE))
+#
+#
+# def main():
+#     measure_angle('hits_votes_4_class_2.json')
+#     measure_angle('hits_votes_4_class_3.json')
+#
+#
+# if __name__ == '__main__':
+#     main()
+#     sys.exit(0)  # not always close
+
+# for o in objects:
+#     print('%s;%f' % (str(o.get(ID)), o.get(NKG_REGRESSION)))
