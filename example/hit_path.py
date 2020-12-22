@@ -31,19 +31,22 @@ objects, count, errors = load_json('../data/manual.json', progress_and_process_i
 by_id = group_by_id(objects)
 used_hits1 = {4711435, 6234182, 9152349, 4913621, 5468291, 7097636, 4976474, 5206452, 4876475, 5951007, 4714801, 4819239, 4660572, 4705446, 8280225, 8459656,
              8471578, 9124308, 9314789, 4813841}
+
 used_hits2 = [7741225, 7238971, 5973441, 4892405, 17432760,
              17432645, 4731298, 6229582, 17571002, 17368987,
              7148947, 4899235, 18349704, 18250739, 6908292,
              9129139, 17771578, 17861029, 17337669, 7470695]
 
-used_hits2 = [7741225, 7238971, 5973441, 4892405, 17432760,
-             17432645, 4731298, 6229582, 7470695, 17368987,
-             7148947, 4899235, 18349704, 18250739, 6908292,
-             9129139, 17771578, 17861029, 17337669, 17571002]
+used_hits3 = [7741225, 4580817, 5973441, 4892405, 17432760,
+              17432645, 4731298, 6229582, 17571002, 17368987,
+              7148947, 4899235, 18349704, 18250739, 6908292,
+              9129139, 17771578, 17861029, 17337669, 7470695,
+              4711435, 6234182, 9152349, 4913621, 5468291,
+              7097636, 4976474, 5206452, 4876475, 5951007,
+              4714801, 4819239, 4660572, 4705446, 8280225,
+              8459656, 8471578, 9124308, 9314789, 4813841]
 
-used_hits2 = reversed(used_hits2)
-
-used_hits = used_hits2
+used_hits = used_hits3
 
 hits = []
 for u in used_hits:
@@ -68,10 +71,14 @@ def display_all(values):
     plt.show()
 
 
-def display_all_from(hits, _from, title_func=None, scale=3):
-    f, axs = plt.subplots(4, 5, constrained_layout=True, figsize=(4*scale, 3*scale))
+def display_all_from(hits, _from, title_func=None, scale=6):
+    cols = 5
+    rows = int(math.ceil(len(hits) / cols))
+    f, axs = plt.subplots(rows, cols, constrained_layout=True, figsize=(4*scale, 3*scale*rows/4))
     i = 0
     for ax in axs.flat:
+        if len(hits) <= i:
+            break
         im = ax.matshow(hits[i].get(_from))
         if title_func is not None:
             ax.title.set_text(title_func(hits[i]))
@@ -223,6 +230,12 @@ def calc_ways(img, pos, ways):
     sums = []
     for way in ways:
         calc = cut * way['way']
+
+        dw = np.ones(calc.shape)
+        dw[1:4, 1:4] = calc[1:4, 1:4]
+        calc = calc + dw  # najbliższe srodka są 2x
+        # calc = calc * dw  # najbliższe środka są x^2
+
         s = np.sum(calc)
         sums.append({**way, 'value': s})
     return sums
@@ -358,7 +371,7 @@ def optimize_path(path, max_distance, max_passes=20):
 
 def nkg_path_analysis(detection: dict, fov=90, step=1):
     h = detection
-    path = nkg_pather(h.get(GRAY), h.get(NKG_THRESHOLD), 90, 1)
+    path = nkg_pather(h.get(GRAY), h.get(NKG_THRESHOLD), fov, step)
     h[NKG_PATH] = path
     h[NKG_MASKED] = line_to_mask(h.get(GRAY), path, create_new_mask=True)
 
@@ -398,7 +411,7 @@ display_all_from(hits, 'smooth')
 
 
 for h in hits:
-    nkg_path_analysis(h)
+    nkg_path_analysis(h, 90)
     h['masked'] = line_to_mask(h.get(GRAY), h[NKG_PATH], create_new_mask=True)
     h['score'] = '%s: %0.3f/%d' % (str(h.get(ID)), h[NKG_REGRESSION], len(h[NKG_PATH_FIT]))
 
@@ -410,23 +423,24 @@ for h in hits:
 display_all_from(hits, 'masked', lambda x:str(x['score']))
 display_all_from(hits, 'masked2', lambda x:str(x['score']), scale=10)
 
-# def measure_angle(fn: str):
-#     hits, count, errors = load_json('../data/%s' % fn, progress_and_process_image)
-#     for h in hits:
-#         nkg_mark_hit_area(h)
-#         nkg_path_analysis(h)
-#
-#         store_png('/tmp/credo', [fn], '%0.3f_%s' % (h.get(NKG_REGRESSION), str(h.get(ID))), h.get(IMAGE))
-#
-#
-# def main():
-#     measure_angle('hits_votes_4_class_2.json')
-#     measure_angle('hits_votes_4_class_3.json')
-#
-#
-# if __name__ == '__main__':
-#     main()
-#     sys.exit(0)  # not always close
+
+#def measure_angle(fn: str):
+#    hits, count, errors = load_json('../data/%s' % fn, progress_and_process_image)
+#    for h in hits:
+#        nkg_mark_hit_area(h)
+#        nkg_path_analysis(h)
+
+#        store_png('/tmp/credo', [fn], '%0.3f_%s' % (h.get(NKG_REGRESSION), str(h.get(ID))), h.get(IMAGE))
+
+
+#def main():
+#    measure_angle('hits_votes_4_class_2.json')
+#    measure_angle('hits_votes_4_class_3.json')
+
+
+#if __name__ == '__main__':
+#    main()
+#    sys.exit(0)  # not always close
 
 # for o in objects:
 #     print('%s;%f' % (str(o.get(ID)), o.get(NKG_REGRESSION)))
