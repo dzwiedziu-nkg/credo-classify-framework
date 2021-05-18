@@ -6,6 +6,8 @@ from typing import List, TextIO, Callable, Optional, Tuple, Any
 from json import loads
 from io import StringIO
 
+from credo_cf import METADATA_MAX, METADATA_AVERAGE, METADATA_BLACKS, METADATA_BLACKS_THRESHOLD, METADATA_AX, METADATA_AY, METADATA_AZ, METADATA_ORIENTATION, \
+    METADATA_TEMPERATURE, METADATA_PARSED
 
 LoadJsonCallback = Callable[[dict, int, List[dict]], Optional[bool]]
 
@@ -74,6 +76,8 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
     buff = None
     for line in _input:
         done = False
+        in_quotes = False
+        next_ignore = False
         for a in line:
             if stage == 0:
                 if a == '[':
@@ -87,8 +91,14 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                     buff = StringIO()
                     stage = 2  # and continue parsing this character in stage 2
             if stage == 2:
-                # FIXME: support the content of metadata, should be easy, all is quoted by " and inner quotes are escaped by \"
-                if a == '}':
+                if next_ignore:
+                    next_ignore = False
+                if a == '\\':
+                    next_ignore = True
+                if a == '"' and not next_ignore:
+                    in_quotes = not in_quotes
+
+                if a == '}' and not in_quotes:
                     if buff is None:
                         errors.append('invalid stage, please review this file in debugger')
                         buff = StringIO()
@@ -101,6 +111,23 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                     buff = None
                     try:
                         o = loads(obj_json)
+
+                        if len(o.get('metadata', '')) > 0:
+                            try:
+                                metadata = loads(o.get('metadata'))
+                                o[METADATA_MAX] = metadata.get('max')
+                                o[METADATA_AVERAGE] = metadata.get('average')
+                                o[METADATA_BLACKS] = metadata.get('blacks')
+                                o[METADATA_BLACKS_THRESHOLD] = metadata.get('black_threshold')
+                                o[METADATA_AX] = metadata.get('ax')
+                                o[METADATA_AY] = metadata.get('ay')
+                                o[METADATA_AZ] = metadata.get('az')
+                                o[METADATA_ORIENTATION] = metadata.get('orientation')
+                                o[METADATA_TEMPERATURE] = metadata.get('temperature')
+                                o[METADATA_PARSED] = True
+                                o['metadata'] = ''
+                            except:
+                                pass
 
                         count += 1
                         if _parser is None:

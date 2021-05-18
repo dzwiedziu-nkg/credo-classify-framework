@@ -30,10 +30,24 @@ EDGE = 'edge'
 CROP_X = 'crop_x'
 CROP_Y = 'crop_y'
 CROP_SIZE = 'crop_size'
+# deconstructed CROP_SIZE for making JSON plain
+CROP_WIDTH = 'crop_width'
+CROP_HEIGHT = 'crop_height'
 
 # classification
 CLASSIFIED = 'classified'  # result of classification
 CLASS_ARTIFACT = 'artifact'
+
+METADATA_PARSED = 'metadata_parsed'
+METADATA_MAX = 'metadata_max'
+METADATA_AVERAGE = 'metadata_average'
+METADATA_BLACKS = 'metadata_blacks'
+METADATA_BLACKS_THRESHOLD = 'metadata_blacks_threshold'
+METADATA_AX = 'metadata_ax'
+METADATA_AY = 'metadata_ay'
+METADATA_AZ = 'metadata_az'
+METADATA_ORIENTATION = 'metadata_orientation'
+METADATA_TEMPERATURE = 'metadata_temperature'
 
 # artifact filter values
 ARTIFACT_TOO_OFTEN = 'artifact_too_often'  # count of occurrences for too_often filter
