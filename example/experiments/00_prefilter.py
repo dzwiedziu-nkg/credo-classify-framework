@@ -190,6 +190,8 @@ def run_file(fn):
             if ARTIFACT_TOO_OFTEN in d.keys():
                 del d[ARTIFACT_TOO_OFTEN]
             if IMAGE in d.keys():
+                d[CROP_WIDTH] = d[IMAGE].size[0]
+                d[CROP_HEIGHT] = d[IMAGE].size[1]
                 del d[IMAGE]
             leave_good.append(d)
 
