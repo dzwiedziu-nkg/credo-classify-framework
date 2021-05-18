@@ -10,7 +10,7 @@ The script:
 Exclusion rules:
 
  * non image
- * non 60x60 size
+ * non 60x60 nor 64x64 nor 128x128 size
  * non X and Y in metadata
  * too_often(10, 60000)
  * near_hot_pixel2(3, 5)
@@ -30,18 +30,19 @@ from typing import Optional, List
 from PIL import Image
 
 from credo_cf import group_by_device_id, group_by_resolution, too_often, near_hot_pixel2, load_json, CLASSIFIED, CLASS_ARTIFACT, ID, FRAME_CONTENT, \
-    ARTIFACT_NEAR_HOT_PIXEL2, ARTIFACT_TOO_OFTEN, X, Y, DEVICE_ID, group_by_timestamp_division, IMAGE, decode_base64, store_png, encode_base64
+    ARTIFACT_NEAR_HOT_PIXEL2, ARTIFACT_TOO_OFTEN, X, Y, DEVICE_ID, group_by_timestamp_division, IMAGE, decode_base64, store_png, encode_base64, CROP_SIZE, \
+    CROP_WIDTH, CROP_HEIGHT
 
 INPUT_DIR = '/tmp/credo/source'
 PASSED_DIR = '/tmp/credo/passed'
 OUTPUT_DIR = '/tmp/credo/destination'
 PARTS_DIR = '/tmp/credo/parts'
 ERROR_DIR = '/tmp/credo/error'
-DEBUG = False
+DEBUG = True
 DEBUG_DIR = '/tmp/credo/debug'
 
 
-def write_detections(detections: List[dict], fn: str, ident=False):
+def write_detections(detections: List[dict], fn: str, ident=True):
     with open(fn, 'w') as json_file:
         if ident:
             json.dump({'detections': detections}, json_file, indent=2)
@@ -96,36 +97,41 @@ def start_analyze(all_detections, log_prefix):
                 if len(in_frame) <= 1:
                     continue
 
-                image = Image.new('RGBA', (resolution[0], resolution[1]), (0, 0, 0))
+                image = None
 
                 for d in reversed(in_frame):
-                    cx = d.get(X) - 30
-                    cy = d.get(Y) - 30
-                    w, h = (60, 60)
+                    if d.get(CROP_SIZE) == (60, 60):
+                        if image is None:
+                            Image.new('RGBA', (resolution[0], resolution[1]), (0, 0, 0))
 
-                    if DEBUG:
-                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'before'], str(d.get(ID)), d.get(FRAME_CONTENT))
+                        cx = d.get(X) - 30
+                        cy = d.get(Y) - 30
+                        w, h = (60, 60)
 
-                    image.paste(d.get(IMAGE), (cx, cy, cx + w, cy + h))
+                        if DEBUG:
+                            store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'before'], str(d.get(ID)), d.get(FRAME_CONTENT))
 
-                    # fix bug in early CREDO Detector App: black filled boundary 1px too large
-                    image.paste(image.crop((cx + w - 1, cy, cx + w, cy + h)), (cx + w, cy, cx + w + 1, cy + h))
-                    image.paste(image.crop((cx, cy + h - 1, cx + w, cy + h)), (cx, cy + h, cx + w, cy + h + 1))
-                    image.paste(image.crop((cx + w - 1, cy + h - 1, cx + w, cy + h)), (cx + w, cy + h, cx + w + 1, cy + h + 1))
+                        image.paste(d.get(IMAGE), (cx, cy, cx + w, cy + h))
+
+                        # fix bug in early CREDO Detector App: black filled boundary 1px too large
+                        image.paste(image.crop((cx + w - 1, cy, cx + w, cy + h)), (cx + w, cy, cx + w + 1, cy + h))
+                        image.paste(image.crop((cx, cy + h - 1, cx + w, cy + h)), (cx, cy + h, cx + w, cy + h + 1))
+                        image.paste(image.crop((cx + w - 1, cy + h - 1, cx + w, cy + h)), (cx + w, cy + h, cx + w + 1, cy + h + 1))
 
                 for d in in_frame:
-                    cx = d.get(X) - 30
-                    cy = d.get(Y) - 30
-                    w, h = (60, 60)
+                    if d.get(CROP_SIZE) == (60, 60):
+                        cx = d.get(X) - 30
+                        cy = d.get(Y) - 30
+                        w, h = (60, 60)
 
-                    hit_img = image.crop((cx, cy, cx + w, cy + h))
-                    with BytesIO() as output:
-                        hit_img.save(output, format="png")
-                        d[FRAME_CONTENT] = encode_base64(output.getvalue())
-                    if DEBUG:
-                        store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'after'], str(d.get(ID)), d.get(FRAME_CONTENT))
+                        hit_img = image.crop((cx, cy, cx + w, cy + h))
+                        with BytesIO() as output:
+                            hit_img.save(output, format="png")
+                            d[FRAME_CONTENT] = encode_base64(output.getvalue())
+                        if DEBUG:
+                            store_png(DEBUG_DIR, ['reconstruct', str(device_id), str(timestmp), 'after'], str(d.get(ID)), d.get(FRAME_CONTENT))
                 reconstructed += 1
-                if DEBUG:
+                if DEBUG and image is not None:
                     store_png(DEBUG_DIR, ['reconstruct', str(device_id)], str(timestmp), image)
             print('%s    ... reconstructed frames: %d' % (log_prefix, reconstructed))
 
@@ -144,7 +150,7 @@ def load_parser(obj: dict, count: int, ret: List[dict]) -> Optional[bool]:
         from credo_cf.image.image_utils import load_image, image_basic_metrics
         frame_decoded = decode_base64(obj.get(FRAME_CONTENT))
         pil = Image.open(BytesIO(frame_decoded))
-        if pil.size == (60, 60):
+        if pil.size == (60, 60) or pil.size == (64, 64) or pil.size == (128, 128):
             obj[IMAGE] = pil
             return True
 
