@@ -112,7 +112,8 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                     try:
                         o = loads(obj_json)
 
-                        if len(o.get('metadata', '')) > 0:
+                        m = o.get('metadata', None)
+                        if m is not None and len(m) > 0:
                             try:
                                 metadata = loads(o.get('metadata'))
                                 o[METADATA_MAX] = metadata.get('max')
