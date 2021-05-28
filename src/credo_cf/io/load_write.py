@@ -7,7 +7,7 @@ from json import loads
 from io import StringIO
 
 from credo_cf import METADATA_MAX, METADATA_AVERAGE, METADATA_BLACKS, METADATA_BLACKS_THRESHOLD, METADATA_AX, METADATA_AY, METADATA_AZ, METADATA_ORIENTATION, \
-    METADATA_TEMPERATURE, METADATA_PARSED
+    METADATA_TEMPERATURE, METADATA_PARSED, METADATA_TRUE_TIME
 
 LoadJsonCallback = Callable[[dict, int, List[dict]], Optional[bool]]
 
@@ -125,6 +125,7 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                                 o[METADATA_AZ] = metadata.get('az')
                                 o[METADATA_ORIENTATION] = metadata.get('orientation')
                                 o[METADATA_TEMPERATURE] = metadata.get('temperature')
+                                o[METADATA_TRUE_TIME] = metadata.get('true_time')
                                 o[METADATA_PARSED] = True
                                 o['metadata'] = ''
                             except:
@@ -141,7 +142,7 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
                             elif fr:
                                 ret.append(o)
                         stage = 1
-                    except:
+                    except Exception as ex:
                         errors.append(obj_json)
                         stage = 1
                 else:

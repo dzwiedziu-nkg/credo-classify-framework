@@ -9,6 +9,10 @@ HEIGHT = 'height'
 X = 'x'
 Y = 'y'
 
+LATITUDE = 'latitude'
+LONGITUDE = 'longitude'
+PROVIDER = 'provider'
+
 FRAME_CONTENT = 'frame_content'  # excluded in CSV
 
 
@@ -48,6 +52,7 @@ METADATA_AY = 'metadata_ay'
 METADATA_AZ = 'metadata_az'
 METADATA_ORIENTATION = 'metadata_orientation'
 METADATA_TEMPERATURE = 'metadata_temperature'
+METADATA_TRUE_TIME = 'metadata_true_time'
 
 # artifact filter values
 ARTIFACT_TOO_OFTEN = 'artifact_too_often'  # count of occurrences for too_often filter
