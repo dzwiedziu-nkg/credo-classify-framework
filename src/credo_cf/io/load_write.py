@@ -75,6 +75,9 @@ def load_json_from_stream(_input: TextIO, _parser: Optional[LoadJsonCallback] = 
     stage = 0
     buff = None
     for line in _input:
+        if isinstance(line, (bytes, bytearray)):
+            line = line.decode('utf-8')
+
         done = False
         in_quotes = False
         next_ignore = False
@@ -169,7 +172,11 @@ def load_json(input_file: str, *args, **kwargs) -> Tuple[List[dict], int, List[s
     :return: redirected directly from load_json_from_stream()
     """
 
-    inp = sys.stdin if input_file == '-' else open(input_file, 'r')
+    if input_file.endswith('xz'):
+        import lzma
+        inp = lzma.open(input_file)
+    else:
+        inp = sys.stdin if input_file == '-' else open(input_file, 'r')
     ret = load_json_from_stream(inp, *args, **kwargs)
     if input_file != '-':
         inp.close()
